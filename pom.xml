@@ -28,7 +28,20 @@
             <version>1.0-SNAPSHOT</version>
             <type>jar</type>
         </dependency>
-    
+    	    <dependency>
+         <groupId>fingerprint</groupId>
+         <artifactId>fingerprint</artifactId>
+         <scope>system</scope>
+         <version>1.0</version>
+         <systemPath>${basedir}\src\lib\fingerprint.jar</systemPath>
+      </dependency>
+      	    <dependency>
+         <groupId>fingerprint</groupId>
+         <artifactId>fingerprint</artifactId>
+         <scope>system</scope>
+         <version>1.0</version>
+         <systemPath>${basedir}\lib\fingerprint.jar</systemPath>
+      </dependency>
     </dependencies>
   
     <build>
