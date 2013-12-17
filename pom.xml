@@ -32,7 +32,7 @@
   		<artifactId>fingerprint</artifactId>
   		<version>0.2-SNAPSHOT</version>
          <scope>system</scope>
-         <systemPath>${basedir}\lib\fingerprint.jar</systemPath>
+         <systemPath>${basedir}/lib/fingerprint.jar</systemPath>
       </dependency>
     </dependencies>
   
