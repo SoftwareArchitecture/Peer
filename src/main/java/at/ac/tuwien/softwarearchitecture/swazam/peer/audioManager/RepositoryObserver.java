@@ -70,7 +70,6 @@ public class RepositoryObserver{
 			@Override
 			public void onStop(FileAlterationObserver arg0) {
 				// TODO Auto-generated method stub
-				
 			}
 	    	  
 	      });
