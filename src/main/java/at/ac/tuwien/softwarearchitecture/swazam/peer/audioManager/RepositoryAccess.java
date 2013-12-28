@@ -37,7 +37,7 @@ public class RepositoryAccess {
 				} catch (IOException e) {
 
 					Logger.getLogger(this.getClass()).log(Level.ERROR, e);
-				} catch (UnsupportedAudioFileException audioFileException) {
+				} catch (UnsupportedAudioFileException e) {
 					Logger.getLogger(this.getClass()).log(Level.ERROR, e);
 				}
 			} else {
