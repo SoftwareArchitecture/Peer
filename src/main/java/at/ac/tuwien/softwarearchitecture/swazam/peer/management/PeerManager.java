@@ -1,16 +1,14 @@
-package at.ac.tuwien.softwarearchitecture.swazam.peer;
+package at.ac.tuwien.softwarearchitecture.swazam.peer.management;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.ClientInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.PeerInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.ServerInfo;
 
-public class Peer {
+public class PeerManager {
 	// holds the peer ring information, i.e. the rest of the peers in the ring.
 	private List<PeerInfo> peerRing;
 
@@ -33,14 +31,14 @@ public class Peer {
 
 	private int port;
 
-	public Peer(String ip, int port) {
+	public PeerManager(String ip, int port) {
 		super();
 		this.ip = ip;
 		this.port = port;
 		generatePeerID();
 	}
 
-	public Peer(UUID superPeerID, ServerInfo serverInfo, ClientInfo clientInfo, String ip, int port) {
+	public PeerManager(UUID superPeerID, ServerInfo serverInfo, ClientInfo clientInfo, String ip, int port) {
 		super();
 		this.superPeerID = superPeerID;
 		this.serverInfo = serverInfo;
@@ -117,5 +115,4 @@ public class Peer {
 	public void setClientInfo(ClientInfo clientInfo) {
 		this.clientInfo = clientInfo;
 	}
-
 }
