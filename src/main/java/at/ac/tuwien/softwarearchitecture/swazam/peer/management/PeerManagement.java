@@ -1,22 +1,23 @@
 package at.ac.tuwien.softwarearchitecture.swazam.peer.management;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
+import ac.at.tuwien.infosys.swa.audio.Fingerprint;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.ClientInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.PeerInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.ServerInfo;
+import at.ac.tuwien.softwarearchitecture.swazam.peer.matching.IMatchingManager;
 
-public class PeerManager {
+public class PeerManagement implements IPeerManagement{
 	// holds the peer ring information, i.e. the rest of the peers in the ring.
-	private List<PeerInfo> peerRing;
+	private Map<PeerInfo, List<Fingerprint>> peerRing;
 
 	{
-		peerRing = new ArrayList<PeerInfo>();
+		peerRing = new HashMap<PeerInfo, List<Fingerprint>>();
 	}
-
-	private UUID peerID;
 
 	private UUID superPeerID;
 
@@ -30,15 +31,17 @@ public class PeerManager {
 	private String ip;
 
 	private int port;
-
-	public PeerManager(String ip, int port) {
+	
+	private UUID peerID;
+	
+	public PeerManagement(String ip, int port) {
 		super();
 		this.ip = ip;
 		this.port = port;
 		generatePeerID();
 	}
 
-	public PeerManager(UUID superPeerID, ServerInfo serverInfo, ClientInfo clientInfo, String ip, int port) {
+	public PeerManagement(UUID superPeerID, ServerInfo serverInfo, ClientInfo clientInfo, String ip, int port) {
 		super();
 		this.superPeerID = superPeerID;
 		this.serverInfo = serverInfo;
@@ -56,20 +59,20 @@ public class PeerManager {
 		return peerID;
 	}
 
-	public List<PeerInfo> getPeerRing() {
+	public Map<PeerInfo, List<Fingerprint>> getPeerRing() {
 		return peerRing;
 	}
 
-	public void setPeerRing(List<PeerInfo> peerRing) {
+	public void setPeerRing(Map<PeerInfo, List<Fingerprint>> peerRing) {
 		this.peerRing = peerRing;
 	}
 
-	public void addPeers(List<PeerInfo> peerRing) {
-		this.peerRing.addAll(peerRing);
+	public void addPeers(Map<PeerInfo, List<Fingerprint>> peerRing) {
+		this.peerRing.putAll(peerRing);
 	}
 
-	public void addPeer(PeerInfo peer) {
-		this.peerRing.add(peer);
+	public void addPeer(PeerInfo peer, List<Fingerprint> fingerprints) {
+		this.peerRing.put(peer, fingerprints);
 	}
 
 	public String getIp() {
@@ -114,5 +117,18 @@ public class PeerManager {
 
 	public void setClientInfo(ClientInfo clientInfo) {
 		this.clientInfo = clientInfo;
+	}
+
+	@Override
+	public void initiateFingerprintSearch(IMatchingManager matchingManager, Fingerprint fingerprint) {
+		//search fingerprint based on fingerprint table
+		
+		//search and then notify matchingManager
+	}
+
+	@Override
+	public void distributeFingerprintsToServer() {
+		// TODO Auto-generated method stub
+		
 	}
 }

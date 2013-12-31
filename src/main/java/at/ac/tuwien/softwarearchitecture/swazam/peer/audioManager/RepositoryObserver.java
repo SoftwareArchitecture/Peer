@@ -9,13 +9,13 @@ import javax.tools.FileObject;
 import org.apache.commons.io.monitor.FileAlterationListener;
 import org.apache.commons.io.monitor.FileAlterationObserver;
 
-import at.ac.tuwien.softwarearchitecture.swazam.peer.fingerprintExtractorAndManager.MusicFilesEvaluation;
+import at.ac.tuwien.softwarearchitecture.swazam.peer.fingerprintExtractorAndManager.FingerprintExtractorAndManager;
 
 
 public class RepositoryObserver{
-	private MusicFilesEvaluation musicFilesEvaluation;
+	private FingerprintExtractorAndManager musicFilesEvaluation;
 	private RepositoryAccess repositoryAccess = new RepositoryAccess();
-	public RepositoryObserver(MusicFilesEvaluation music){
+	public RepositoryObserver(FingerprintExtractorAndManager music){
 		musicFilesEvaluation=music;
 	}
 	public void setObservedDirectory(String path){

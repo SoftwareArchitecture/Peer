@@ -14,15 +14,14 @@ import org.apache.log4j.Logger;
 
 import ac.at.tuwien.infosys.swa.audio.Fingerprint;
 import ac.at.tuwien.infosys.swa.audio.FingerprintSystem;
-import at.ac.tuwien.softwarearchitecture.swazam.peer.api.impl.SocketAPI;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.audioManager.RepositoryAccess;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.audioManager.RepositoryObserver;
 
-public class MusicFilesEvaluation {
+public class FingerprintExtractorAndManager {
 	private FingerprintSystem fingerprintSystem = new FingerprintSystem(10);
 	private HashMap<Fingerprint, String> knownFingerprints = new HashMap<Fingerprint, String>();
 
-	public MusicFilesEvaluation(String repository) {
+	public FingerprintExtractorAndManager(String repository) {
 		RepositoryObserver repositoryObserver = new RepositoryObserver(this);
 		repositoryObserver.setObservedDirectory(repository);
 		readCurrentRepository(repository);
