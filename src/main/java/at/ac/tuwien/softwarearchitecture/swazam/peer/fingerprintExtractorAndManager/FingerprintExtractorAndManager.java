@@ -30,7 +30,7 @@ public class FingerprintExtractorAndManager {
 	public String printAllFingerprints() {
 		String fingerprints = "";
 		for (Entry<Fingerprint, String> entry : knownFingerprints.entrySet()) {
-			fingerprints += " " + entry.getValue() + " fingerprint=" + entry.getKey() + " \n";
+			fingerprints += " " + entry.getValue() + " fingerprint= " + entry.getKey() + " \n";
 		}
 		return fingerprints;
 	}
@@ -66,11 +66,17 @@ public class FingerprintExtractorAndManager {
 		HashMap<AudioInputStream, String> audios = repositoryAccess.getAllFilesFromDirectory(repo);
 		for (Entry<AudioInputStream, String> audioInputStream : audios.entrySet()) {
 			try {
-				System.out.println("Trying to get fingerprint for " + audioInputStream.getValue());
+				//System.out.println("Trying to get fingerprint for " + audioInputStream.getValue());
 				knownFingerprints.put(FingerprintSystem.fingerprint(audioInputStream.getKey()), audioInputStream.getValue());
+				audioInputStream.getKey().close();
 			} catch (IOException e) {
 				Logger.getLogger(this.getClass()).log(Level.ERROR, e);
 			}
 		}
+	}
+	public String evaluateFingerprint (Fingerprint fingerprint){
+		if (knownFingerprints.containsKey(fingerprint))
+			return knownFingerprints.get(fingerprint);
+		return "";
 	}
 }

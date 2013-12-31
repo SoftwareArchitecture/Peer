@@ -27,11 +27,11 @@ public class RepositoryAccess {
 		File folder = new File(directory);
 		File[] listOfFiles = folder.listFiles();
 		HashMap<AudioInputStream, String> audioStreams = new HashMap<AudioInputStream, String>();
-
+		if (listOfFiles!=null)
 		for (int i = 0; i < listOfFiles.length; i++) {
 
 			if (listOfFiles[i].isFile()) {
-				System.out.println("Reading input " + listOfFiles[i].getAbsolutePath());
+				//System.out.println("Reading input " + listOfFiles[i].getName());
 				try {
 					audioStreams.put(AudioSystem.getAudioInputStream(listOfFiles[i]), listOfFiles[i].getName());
 				} catch (IOException e) {
@@ -42,6 +42,7 @@ public class RepositoryAccess {
 				}
 			} else {
 				if (listOfFiles[i].isDirectory()) {
+					//System.out.println("REading from directory"+listOfFiles[i].getName());
 					audioStreams.putAll(getAllFilesFromDirectory(listOfFiles[i].getAbsolutePath()));
 				}
 			}
