@@ -1,5 +1,6 @@
 package at.ac.tuwien.softwarearchitecture.swazam.peer.management;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,12 +12,25 @@ import at.ac.tuwien.softwarearchitecture.swazam.common.infos.PeerInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.ServerInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.matching.IMatchingManager;
 
-public class PeerManagement implements IPeerManagement{
+public class PeerManagement implements IPeerManagement {
 	// holds the peer ring information, i.e. the rest of the peers in the ring.
-	private Map<PeerInfo, List<Fingerprint>> peerRing;
+	// Replaced with List<IDs> for privacy, to avoid
+	// a super peer or other peers knowing the content of all other peers
+	// private Map<PeerInfo, List<Fingerprint>> peerRing;
 
+	// {
+	// peerRing = new HashMap<PeerInfo, List<Fingerprint>>();
+	// }
+
+	/**
+	 * In the case a SubPeer receives a request from the SuperPeer, the request
+	 * is
+	 */
+	private IMatchingManager matchingManager;
+
+	private List<PeerInfo> peerRing;
 	{
-		peerRing = new HashMap<PeerInfo, List<Fingerprint>>();
+		peerRing = new ArrayList<PeerInfo>();
 	}
 
 	private UUID superPeerID;
@@ -31,9 +45,9 @@ public class PeerManagement implements IPeerManagement{
 	private String ip;
 
 	private int port;
-	
+
 	private UUID peerID;
-	
+
 	public PeerManagement(String ip, int port) {
 		super();
 		this.ip = ip;
@@ -59,24 +73,48 @@ public class PeerManagement implements IPeerManagement{
 		return peerID;
 	}
 
-	public Map<PeerInfo, List<Fingerprint>> getPeerRing() {
-		return peerRing;
+	// public Map<PeerInfo, List<Fingerprint>> getPeerRing() {
+	// return peerRing;
+	// }
+	//
+	// public void setPeerRing(Map<PeerInfo, List<Fingerprint>> peerRing) {
+	// this.peerRing = peerRing;
+	// }
+	//
+	// public void addPeers(Map<PeerInfo, List<Fingerprint>> peerRing) {
+	// this.peerRing.putAll(peerRing);
+	// }
+	//
+	// public void addPeer(PeerInfo peer, List<Fingerprint> fingerprints) {
+	// this.peerRing.put(peer, fingerprints);
+	// }
+
+	public IMatchingManager getMatchingManager() {
+		return matchingManager;
 	}
 
-	public void setPeerRing(Map<PeerInfo, List<Fingerprint>> peerRing) {
-		this.peerRing = peerRing;
-	}
-
-	public void addPeers(Map<PeerInfo, List<Fingerprint>> peerRing) {
-		this.peerRing.putAll(peerRing);
-	}
-
-	public void addPeer(PeerInfo peer, List<Fingerprint> fingerprints) {
-		this.peerRing.put(peer, fingerprints);
+	public void setMatchingManager(IMatchingManager matchingManager) {
+		this.matchingManager = matchingManager;
 	}
 
 	public String getIp() {
 		return ip;
+	}
+
+	public List<PeerInfo> getPeerRing() {
+		return peerRing;
+	}
+
+	public void setPeerRing(List<PeerInfo> peerRing) {
+		this.peerRing = peerRing;
+	}
+
+	public void addPeerRing(List<PeerInfo> peerRing) {
+		this.peerRing.addAll(peerRing);
+	}
+
+	public void addPeerInfo(PeerInfo peerInfo) {
+		this.peerRing.add(peerInfo);
 	}
 
 	public void setIp(String ip) {
@@ -120,15 +158,30 @@ public class PeerManagement implements IPeerManagement{
 	}
 
 	@Override
-	public void initiateFingerprintSearch(IMatchingManager matchingManager, Fingerprint fingerprint) {
-		//search fingerprint based on fingerprint table
-		
-		//search and then notify matchingManager
+	public void distributeFingerprintsToServer() {
+		// TODO Auto-generated method stub
+
+	}
+
+	/**
+	 * takes the request and forwards it to the MatchingManager. It is used in
+	 * case a search is forwarded to this peer from another PeerManager
+	 */
+
+	@Override
+	public void searchFingerprint(ClientInfo client, Fingerprint fingerprint) {
+		if (matchingManager != null) {
+			matchingManager.matchFile(client, fingerprint);
+		}
 	}
 
 	@Override
-	public void distributeFingerprintsToServer() {
+	public void forwardSearchRequest(ClientInfo clientInfo, Fingerprint fingerprint) {
 		// TODO Auto-generated method stub
-		
+		if (this.peerID.equals(this.superPeerID)) {
+			// broadcast to all other peers in ring the search request
+		} else {
+			// just ignore request
+		}
 	}
 }

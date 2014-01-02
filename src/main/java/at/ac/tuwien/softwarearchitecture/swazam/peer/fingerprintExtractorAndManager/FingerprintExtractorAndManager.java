@@ -14,6 +14,7 @@ import org.apache.log4j.Logger;
 
 import ac.at.tuwien.infosys.swa.audio.Fingerprint;
 import ac.at.tuwien.infosys.swa.audio.FingerprintSystem;
+import at.ac.tuwien.softwarearchitecture.swazam.common.infos.MusicFileInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.audioManager.RepositoryAccess;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.audioManager.RepositoryObserver;
 
@@ -66,7 +67,8 @@ public class FingerprintExtractorAndManager {
 		HashMap<AudioInputStream, String> audios = repositoryAccess.getAllFilesFromDirectory(repo);
 		for (Entry<AudioInputStream, String> audioInputStream : audios.entrySet()) {
 			try {
-				//System.out.println("Trying to get fingerprint for " + audioInputStream.getValue());
+				// System.out.println("Trying to get fingerprint for " +
+				// audioInputStream.getValue());
 				knownFingerprints.put(FingerprintSystem.fingerprint(audioInputStream.getKey()), audioInputStream.getValue());
 				audioInputStream.getKey().close();
 			} catch (IOException e) {
@@ -74,9 +76,12 @@ public class FingerprintExtractorAndManager {
 			}
 		}
 	}
-	public String evaluateFingerprint (Fingerprint fingerprint){
-		if (knownFingerprints.containsKey(fingerprint))
-			return knownFingerprints.get(fingerprint);
-		return "";
+
+	public MusicFileInfo evaluateFingerprint(Fingerprint fingerprint) {
+		MusicFileInfo fileInfo = new MusicFileInfo();
+		if (knownFingerprints.containsKey(fingerprint)) {
+			fileInfo.setDescription(knownFingerprints.get(fingerprint));
+		}
+		return fileInfo;
 	}
 }
