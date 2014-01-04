@@ -32,7 +32,7 @@ public class ServerCommunicationManager implements IServerCommunicationManager{
 
 	@Override
 	public void forwardSearchRequest(ClientInfo clientInfo, Fingerprint fingerprintToSearch) {
-		
+		matchingManager.matchFile(clientInfo, fingerprintToSearch);
 	}
 
 	@Override
@@ -49,7 +49,5 @@ public class ServerCommunicationManager implements IServerCommunicationManager{
 		thread.start();
 		
 	}
- 
-	
 
 }

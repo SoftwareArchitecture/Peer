@@ -3,7 +3,6 @@ package at.ac.tuwien.softwarearchitecture.swazam.peer.matching;
 import ac.at.tuwien.infosys.swa.audio.Fingerprint;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.ClientInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.MusicFileInfo;
-import at.ac.tuwien.softwarearchitecture.swazam.peer.management.IPeerManagement;
 
 public interface IMatchingManager {
 
@@ -20,6 +19,6 @@ public interface IMatchingManager {
 	 * Matching Manager for file search to notify the Matching Manager by the
 	 * Peer Management
 	 */
-	public void notifySearchResult(ClientInfo clientInfo, MusicFileInfo musicInfo);
+//	public void notifySearchResult(ClientInfo clientInfo, MusicFileInfo musicInfo);
 
 }

@@ -9,16 +9,18 @@ import org.apache.log4j.Logger;
 
 public class NetworkUtil {
 
-
 	/**
-	 * Used in determining if a port is used or not is open or not. Useful in checking if the superPeer is alive
+	 * Used in determining if a port is used or not is open or not. Useful in
+	 * checking if the superPeer is alive
 	 * 
 	 * @param ip
 	 * @param port
 	 * @return
 	 */
-	public boolean checkIfPortOpen(String ip, int port) {
-		try (Socket ignored = new Socket(ip, port)) {
+	public static boolean checkIfPortOpen(String ip, int port) {
+		try {
+			Socket ignored = new Socket(ip, port);
+			ignored.close();
 			return true;
 		} catch (IOException ignored) {
 			return false;

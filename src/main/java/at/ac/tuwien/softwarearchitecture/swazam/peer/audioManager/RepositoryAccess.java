@@ -17,7 +17,7 @@ public class RepositoryAccess {
 	public AudioInputStream getFileWithPath(String path) {
 		try {
 			return AudioSystem.getAudioInputStream(new File(path));
-		} catch (UnsupportedAudioFileException | IOException e) {
+		} catch (Exception e) {
 			Logger.getLogger(this.getClass()).log(Level.ERROR, e);
 			return null;
 		}

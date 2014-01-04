@@ -17,15 +17,27 @@ import ac.at.tuwien.infosys.swa.audio.FingerprintSystem;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.MusicFileInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.audioManager.RepositoryAccess;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.audioManager.RepositoryObserver;
+import at.ac.tuwien.softwarearchitecture.swazam.peer.management.IPeerManager;
 
 public class FingerprintExtractorAndManager {
 	private FingerprintSystem fingerprintSystem = new FingerprintSystem(10);
 	private HashMap<Fingerprint, String> knownFingerprints = new HashMap<Fingerprint, String>();
+	private IPeerManager peerManager;
 
-	public FingerprintExtractorAndManager(String repository) {
+	public FingerprintExtractorAndManager(String repository, IPeerManager peerManager) {
+		this.peerManager = peerManager;
 		RepositoryObserver repositoryObserver = new RepositoryObserver(this);
 		repositoryObserver.setObservedDirectory(repository);
 		readCurrentRepository(repository);
+		peerManager.distributeFingerprints(knownFingerprints.keySet());
+	}
+
+	public IPeerManager getPeerManager() {
+		return peerManager;
+	}
+
+	public void setPeerManager(IPeerManager peerManager) {
+		this.peerManager = peerManager;
 	}
 
 	public String printAllFingerprints() {
@@ -38,6 +50,7 @@ public class FingerprintExtractorAndManager {
 
 	public void removeFingerprint(Fingerprint fingerprint) {
 		knownFingerprints.remove(fingerprint);
+		peerManager.distributeFingerprints(knownFingerprints.keySet());
 	}
 
 	public void removeFingerprint(String fingerprintName) {
@@ -47,8 +60,11 @@ public class FingerprintExtractorAndManager {
 				toDelete = f.getKey();
 			}
 		}
-		if (toDelete != null)
+		if (toDelete != null){
 			knownFingerprints.remove(toDelete);
+		}
+		
+		peerManager.distributeFingerprints(knownFingerprints.keySet());
 	}
 
 	public void addFingerprint(AudioInputStream audioInputStream, String fileName) {
@@ -60,6 +76,7 @@ public class FingerprintExtractorAndManager {
 			Logger.getLogger(this.getClass()).log(Level.ERROR, e);
 		}
 		knownFingerprints.put(fingerprint, fileName);
+		peerManager.distributeFingerprints(knownFingerprints.keySet());
 	}
 
 	public void readCurrentRepository(String repo) {

@@ -4,21 +4,26 @@ import ac.at.tuwien.infosys.swa.audio.Fingerprint;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.ClientInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.MusicFileInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.fingerprintExtractorAndManager.FingerprintExtractorAndManager;
-import at.ac.tuwien.softwarearchitecture.swazam.peer.management.IPeerManagement;
-import at.ac.tuwien.softwarearchitecture.swazam.peer.management.PeerManagement;
+import at.ac.tuwien.softwarearchitecture.swazam.peer.management.IPeerManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.serverCommunication.IServerCommunicationManager;
 
 public class MatchingManager implements IMatchingManager {
 
 	private FingerprintExtractorAndManager fingerprintExtractorAndManager;
-	private IPeerManagement management;
+	private IPeerManager peerManager;
 	private IServerCommunicationManager communicationManager;
+	
+	public MatchingManager(IPeerManager peerManager) {
+		super();
+		this.peerManager = peerManager;
+		fingerprintExtractorAndManager = new FingerprintExtractorAndManager("", peerManager);
+	}
 
 	/**
 	 * The peer management leaves a reference at which will be called back when
 	 * the file has been matched
 	 * 
-	 * @param peerManagement
+	 * @param peerManager
 	 * @param fingerprint
 	 */
 	@Override
@@ -33,9 +38,9 @@ public class MatchingManager implements IMatchingManager {
 				// if not found, and if seed, broadcast request to other peers
 				// in ring
 				if (!fileInfo.isEmpty()) {
-					communicationManager.notifyAboutSearchResult(clientInfo, fileInfo);
+					getCommunicationManager().notifyAboutSearchResult(clientInfo, fileInfo);
 				} else {
-					management.forwardSearchRequest(clientInfo, fingerprint);
+					peerManager.forwardSearchRequest(clientInfo, fingerprint);
 				}
 
 			}
@@ -46,17 +51,25 @@ public class MatchingManager implements IMatchingManager {
 
 	}
 
-	/**
-	 * Used in Asynchronous communication. If the communicationManager
-	 * broadcasts the search result to all other PeerManager, it will notify the
-	 * MatchingManager about the result
-	 * 
-	 * @param clientInfo
-	 * @param musicInfo
-	 */
-	@Override
-	public void notifySearchResult(ClientInfo clientInfo, MusicFileInfo musicInfo) {
-		communicationManager.notifyAboutSearchResult(clientInfo, musicInfo);
+	public IServerCommunicationManager getCommunicationManager() {
+		return communicationManager;
 	}
+
+	public void setCommunicationManager(IServerCommunicationManager communicationManager) {
+		this.communicationManager = communicationManager;
+	}
+
+//	/**
+//	 * Used in Asynchronous communication. If the communicationManager
+//	 * broadcasts the search result to all other PeerManager, it will notify the
+//	 * MatchingManager about the result
+//	 * 
+//	 * @param clientInfo
+//	 * @param musicInfo
+//	 */
+//	@Override
+//	public void notifySearchResult(ClientInfo clientInfo, MusicFileInfo musicInfo) {
+//		communicationManager.notifyAboutSearchResult(clientInfo, musicInfo);
+//	}
 
 }
