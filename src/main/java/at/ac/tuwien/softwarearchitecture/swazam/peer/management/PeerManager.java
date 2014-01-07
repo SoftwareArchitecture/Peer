@@ -6,182 +6,178 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 import ac.at.tuwien.infosys.swa.audio.Fingerprint;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.ClientInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.PeerInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.ServerInfo;
+import at.ac.tuwien.softwarearchitecture.swazam.peer.fingerprintExtractorAndManager.FingerprintExtractorAndManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.matching.IMatchingManager;
+import at.ac.tuwien.softwarearchitecture.swazam.peer.serverCommunication.ServerCommunicationManager;
+import at.ac.tuwien.softwarearchitecture.swazam.peer.util.ConfigurationManagement;
 
 public class PeerManager implements IPeerManager {
-    /*
-     * holds the peer ring information, i.e. the rest of the peers in the ring.
-     * Replaced with List<IDs> for privacy, to avoid a super peer or other peers
-     * knowing the content of all other peers
-     */
+	/*
+	 * holds the peer ring information, i.e. the rest of the peers in the ring.
+	 * Replaced with List<IDs> for privacy, to avoid a super peer or other peers
+	 * knowing the content of all other peers
+	 */
 
-    private Map<PeerInfo, List<Fingerprint>> peerRing;
+	private Map<PeerInfo, List<Fingerprint>> peerRing;
 
-    {
-        peerRing = new HashMap<PeerInfo, List<Fingerprint>>();
-    }
-    /**
-     * In the case a SubPeer receives a request from the SuperPeer, the request
-     * is
-     */
-    private IMatchingManager matchingManager;
-    // private List<PeerInfo> peerRing;
-    // {
-    // peerRing = new ArrayList<PeerInfo>();
-    // }
-    private UUID superPeerID;
-    // info used to signal the server when a new SuperPeer is elected
-    private ServerInfo serverInfo;
-    // info used to bill a client for search/result
-    private ClientInfo clientInfo;
-    // information regarding the current Peer
-    private String ip;
-    private int port;
-    private UUID peerID;
+	{
+		peerRing = new HashMap<PeerInfo, List<Fingerprint>>();
+	}
+	/**
+	 * In the case a SubPeer receives a request from the SuperPeer, the request
+	 * is
+	 */
+	private IMatchingManager matchingManager;
+	private ServerCommunicationManager serverCommunicationManager;
+	private FingerprintExtractorAndManager fingerprintExtractorAndManager;
 
-    public PeerManager(String ip, int port) {
-        super();
-        this.ip = ip;
-        this.port = port;
-        generatePeerID();
-    }
+	// private List<PeerInfo> peerRing;
+	// {
+	// peerRing = new ArrayList<PeerInfo>();
+	// }
+	private PeerInfo superPeerInfo;
 
-    public PeerManager(UUID superPeerID, ServerInfo serverInfo, ClientInfo clientInfo, String ip, int port) {
-        super();
-        this.superPeerID = superPeerID;
-        this.serverInfo = serverInfo;
-        this.clientInfo = clientInfo;
-        this.ip = ip;
-        this.port = port;
-        generatePeerID();
-    }
+	// info used to bill a client for search/result
+	private ClientInfo clientInfo;
+	// information regarding the current Peer
+	// this is ditributed to the Server and other peers and used in connecting
+	// to this Peer
+	private PeerInfo peerInfo;
 
-    private void generatePeerID() {
+	private UUID peerID;
 
-        peerID = UUID.nameUUIDFromBytes((ip + "_" + port).getBytes());
-    }
+	public PeerManager() {
+		super();
+		peerInfo = ConfigurationManagement.loadPeerInfo();
+		clientInfo = ConfigurationManagement.loadClientInfo();
+		peerID = generatePeerID();
+	}
 
-    public UUID getPeerID() {
-        return peerID;
-    }
+ 
+	private UUID generatePeerID() {
 
-    public Map<PeerInfo, List<Fingerprint>> getPeerRing() {
-        return peerRing;
-    }
+		return UUID.nameUUIDFromBytes((peerInfo.getIp() + "_" + peerInfo.getPort()).getBytes());
+	}
 
-    public void setPeerRing(Map<PeerInfo, List<Fingerprint>> peerRing) {
-        this.peerRing = peerRing;
-    }
+	public UUID getPeerID() {
+		return peerID;
+	}
 
-    public void addPeers(Map<PeerInfo, List<Fingerprint>> peerRing) {
-        this.peerRing.putAll(peerRing);
-    }
+	public Map<PeerInfo, List<Fingerprint>> getPeerRing() {
+		return peerRing;
+	}
 
-    public void addPeer(PeerInfo peer, List<Fingerprint> fingerprints) {
-        this.peerRing.put(peer, fingerprints);
-    }
+	public void setPeerRing(Map<PeerInfo, List<Fingerprint>> peerRing) {
+		this.peerRing = peerRing;
+	}
 
-    public IMatchingManager getMatchingManager() {
-        return matchingManager;
-    }
+	public void addPeers(Map<PeerInfo, List<Fingerprint>> peerRing) {
+		this.peerRing.putAll(peerRing);
+	}
 
-    public void setMatchingManager(IMatchingManager matchingManager) {
-        this.matchingManager = matchingManager;
-    }
+	public void addPeer(PeerInfo peer, List<Fingerprint> fingerprints) {
+		this.peerRing.put(peer, fingerprints);
+	}
 
-    public String getIp() {
-        return ip;
-    }
+	public IMatchingManager getMatchingManager() {
+		return matchingManager;
+	}
 
-    // public List<PeerInfo> getPeerRing() {
-    // return peerRing;
-    // }
-    //
-    // public void setPeerRing(List<PeerInfo> peerRing) {
-    // this.peerRing = peerRing;
-    // }
-    //
-    // public void addPeerRing(List<PeerInfo> peerRing) {
-    // this.peerRing.addAll(peerRing);
-    // }
-    //
-    // public void addPeerInfo(PeerInfo peerInfo) {
-    // this.peerRing.add(peerInfo);
-    // }
-    public void setIp(String ip) {
-        this.ip = ip;
-    }
+	public void setMatchingManager(IMatchingManager matchingManager) {
+		this.matchingManager = matchingManager;
+	}
 
-    public int getPort() {
-        return port;
-    }
+	public PeerInfo getPeerInfo() {
+		return peerInfo;
+	}
 
-    public void setPort(int port) {
-        this.port = port;
-    }
+	public void setPeerInfo(PeerInfo peerInfo) {
+		this.peerInfo = peerInfo;
+	}
 
-    public void setPeerID(UUID peerID) {
-        this.peerID = peerID;
-    }
+	public void setPeerID(UUID peerID) {
+		this.peerID = peerID;
+	}
 
-    public UUID getSuperPeerID() {
-        return superPeerID;
-    }
+	 
 
-    public void setSuperPeerID(UUID superPeerID) {
-        this.superPeerID = superPeerID;
-    }
+	public PeerInfo getsuperPeerInfo() {
+		return superPeerInfo;
+	}
+ 
+	public ClientInfo getClientInfo() {
+		return clientInfo;
+	}
 
-    public ServerInfo getServerInfo() {
-        return serverInfo;
-    }
+	public void setClientInfo(ClientInfo clientInfo) {
+		this.clientInfo = clientInfo;
+	}
 
-    public void setServerInfo(ServerInfo serverInfo) {
-        this.serverInfo = serverInfo;
-    }
+	public ServerCommunicationManager getServerCommunicationManager() {
+		return serverCommunicationManager;
+	}
 
-    public ClientInfo getClientInfo() {
-        return clientInfo;
-    }
+	public void setServerCommunicationManager(ServerCommunicationManager serverCommunicationManager) {
+		this.serverCommunicationManager = serverCommunicationManager;
+	}
 
-    public void setClientInfo(ClientInfo clientInfo) {
-        this.clientInfo = clientInfo;
-    }
+	public FingerprintExtractorAndManager getFingerprintExtractorAndManager() {
+		return fingerprintExtractorAndManager;
+	}
 
-    /**
-     * takes the request and forwards it to the MatchingManager. It is used in
-     * case a search is forwarded to this peer from another PeerManager
-     */
-    @Override
-    public void searchFingerprint(final ClientInfo client, final Fingerprint fingerprint) {
-        Thread matchingThread = new Thread() {
-            public void run() {
-                if (matchingManager != null) {
-                    matchingManager.matchFile(client, fingerprint);
-                }
-            }
-        };
+	public void setFingerprintExtractorAndManager(FingerprintExtractorAndManager fingerprintExtractorAndManager) {
+		this.fingerprintExtractorAndManager = fingerprintExtractorAndManager;
+	}
 
-        matchingThread.setDaemon(true);
-        matchingThread.start();
-    }
+	/**
+	 * takes the request and forwards it to the MatchingManager. It is used in
+	 * case a search is forwarded to this peer from another PeerManager
+	 */
+	@Override
+	public void searchFingerprint(final ClientInfo client, final Fingerprint fingerprint) {
+		Thread matchingThread = new Thread() {
+			public void run() {
+				if (matchingManager != null) {
+					matchingManager.matchFile(client, fingerprint);
+				}
+			}
+		};
 
-    @Override
-    public void forwardSearchRequest(ClientInfo clientInfo, Fingerprint fingerprint) {
-        // TODO Auto-generated method stub
-        if (this.peerID.equals(this.superPeerID)) {
-            // broadcast to all other peers in ring the search request
-        } else {
-            // just ignore request
-        }
-    }
+		matchingThread.setDaemon(true);
+		matchingThread.start();
+	}
 
-    @Override
-    public void distributeFingerprints(Collection<Fingerprint> peerFingerprints) {
-        // TODO Auto-generated method stub
-    }
+	@Override
+	public void forwardSearchRequest(ClientInfo clientInfo, Fingerprint fingerprint) {
+		// TODO Auto-generated method stub
+		if (this.peerID.equals(this.superPeerInfo.getPeerID())) {
+			// broadcast to all other peers in ring the search request
+		} else {
+			// just ignore request
+		}
+	}
+
+	@Override
+	public void distributeFingerprints(Collection<Fingerprint> peerFingerprints) {
+		if (serverCommunicationManager != null) {
+			superPeerInfo = serverCommunicationManager.registerToServer(peerInfo, peerFingerprints);
+		} else {
+			Logger.getLogger(this.getClass()).log(Level.ERROR, "Peer Manager not instantiated properly. ServerCommunicationManager is null");
+		}
+	}
+
+
+	@Override
+	public void updateSuperPeerInfo(PeerInfo superPeerInfo) {
+		this.superPeerInfo = superPeerInfo;
+		//TODO: need to add here something to mark the super peer id as changed.
+		//if not changed in specific interval, means super peer does not send its id anymore, thus its dead and leader election must take place
+	}
 }

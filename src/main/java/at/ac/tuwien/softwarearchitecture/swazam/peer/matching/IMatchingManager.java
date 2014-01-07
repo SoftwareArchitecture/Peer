@@ -11,8 +11,8 @@ public interface IMatchingManager {
 	 * Matching Manager for file search to initiate the search on Peer
 	 * Management
 	 */
-	public void matchFile(ClientInfo clientInfo, Fingerprint fingerprint);
 
+	public void matchFile(ClientInfo clientInfo, Fingerprint fingerprint);
 	// to be customized according to need
 	/**
 	 * To be used in asynchronous connector between the PeerManagement and
