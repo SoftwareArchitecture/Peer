@@ -31,6 +31,7 @@ public class ServerCommunicationManager implements IServerCommunicationManager{
 		throw new UnsupportedOperationException("Not implemented yet");
 	}
 
+	//todo: rename to matchFile
 	@Override
 	public void forwardSearchRequest(ClientInfo clientInfo, Fingerprint fingerprintToSearch) {
 		matchingManager.matchFile(clientInfo, fingerprintToSearch);

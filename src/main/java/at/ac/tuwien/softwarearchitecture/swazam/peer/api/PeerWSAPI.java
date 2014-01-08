@@ -10,6 +10,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.FingerprintSearchRequest;
+import at.ac.tuwien.softwarearchitecture.swazam.common.infos.PeerFingerprintInformation;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.PeerInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.util.PeerControl;
 
@@ -34,15 +35,33 @@ public class PeerWSAPI {
     }
 
     /**
-     * Used in hart beat from SuperPeer to normal peers. If SuperPeer info not updated at specific interval, super peer is considered dead and leader election takes place
-     * @param superPeerInfo contains at least the UUID of the super peer
+     * Used in heart beat from SuperPeer to normal peers.
      */
     @PUT
-    @Path("/search")
+    @Path("/superPeerInfo")
     @Consumes("multipart/form")
-    public void updateSuperPeerInfo(PeerInfo superPeerInfo) {
+    public void refreshSuperPeerInfo(PeerInfo superPeerInfo) {
         Logger.getLogger(PeerWSAPI.class).log(Level.WARN, "Updated super peer ID: " + superPeerInfo.getPeerID());
         peerControl.getPeerManager().updateSuperPeerInfo(superPeerInfo);
+    }
+    
+    /**If SuperPeer info not updated at specific interval, super peer is considered dead and leader election takes place
+    * @param superPeerInfo contains at least the UUID of the super peer */
+    @POST
+    @Path("/superPeerInfo")
+    @Consumes("multipart/form")
+    public void leaderEllectionSuperPeerInfo(PeerInfo superPeerInfo) {
+        Logger.getLogger(PeerWSAPI.class).log(Level.WARN, "Updated super peer ID: " + superPeerInfo.getPeerID());
+        peerControl.getPeerManager().leaderElection(superPeerInfo);
+    }
+    
+    @PUT
+    @Path("/fingerprints")
+    @Consumes("multipart/form")
+    public void refreshSuperPeerInfo(PeerFingerprintInformation peerFingerprintInformation) {
+    
+        Logger.getLogger(PeerWSAPI.class).log(Level.WARN, "Updated super peer ID: " + peerFingerprintInformation.getPeerInfo().getIp());
+        peerControl.getPeerManager().updateRingInformation(peerFingerprintInformation);
     }
     
 }

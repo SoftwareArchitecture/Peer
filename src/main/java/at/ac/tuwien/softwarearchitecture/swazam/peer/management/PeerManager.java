@@ -1,5 +1,6 @@
 package at.ac.tuwien.softwarearchitecture.swazam.peer.management;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -11,12 +12,13 @@ import org.apache.log4j.Logger;
 
 import ac.at.tuwien.infosys.swa.audio.Fingerprint;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.ClientInfo;
+import at.ac.tuwien.softwarearchitecture.swazam.common.infos.PeerFingerprintInformation;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.PeerInfo;
-import at.ac.tuwien.softwarearchitecture.swazam.common.infos.ServerInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.fingerprintExtractorAndManager.FingerprintExtractorAndManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.matching.IMatchingManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.serverCommunication.ServerCommunicationManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.util.ConfigurationManagement;
+import at.ac.tuwien.softwarearchitecture.swazam.peer.util.NetworkUtil;
 
 public class PeerManager implements IPeerManager {
 	/*
@@ -60,7 +62,6 @@ public class PeerManager implements IPeerManager {
 		peerID = generatePeerID();
 	}
 
- 
 	private UUID generatePeerID() {
 
 		return UUID.nameUUIDFromBytes((peerInfo.getIp() + "_" + peerInfo.getPort()).getBytes());
@@ -106,12 +107,10 @@ public class PeerManager implements IPeerManager {
 		this.peerID = peerID;
 	}
 
-	 
-
 	public PeerInfo getsuperPeerInfo() {
 		return superPeerInfo;
 	}
- 
+
 	public ClientInfo getClientInfo() {
 		return clientInfo;
 	}
@@ -173,11 +172,67 @@ public class PeerManager implements IPeerManager {
 		}
 	}
 
-
 	@Override
 	public void updateSuperPeerInfo(PeerInfo superPeerInfo) {
 		this.superPeerInfo = superPeerInfo;
-		//TODO: need to add here something to mark the super peer id as changed.
-		//if not changed in specific interval, means super peer does not send its id anymore, thus its dead and leader election must take place
+		// TODO: need to add here something to mark the super peer id as
+		// changed.
+		// if not changed in specific interval, means super peer does not send
+		// its id anymore, thus its dead and leader election must take place
+	}
+
+	@Override
+	public void performLeaderElection() {
+		// test which Peer is alive. And the Peer with largest ID is compared to
+		// this, and the largest ID wins
+
+		// refresh ring
+		List<Thread> ringRefreshThreads = new ArrayList<Thread>();
+		for (final PeerInfo info : peerRing.keySet()) {
+			Thread thread = new Thread() {
+				public void run() {
+					// check if Peer is alive (if port is not closed)
+					boolean isAlive = NetworkUtil.checkIfPortOpen(info.getIp(), info.getPort());
+					if (!isAlive) {
+						peerRing.remove(info);
+					}
+				}
+			};
+			ringRefreshThreads.add(thread);
+		}
+		// start threads
+		for (Thread t : ringRefreshThreads) {
+			t.setDaemon(true);
+			t.start();
+		}
+		// wait for threads to finish
+		for (Thread t : ringRefreshThreads) {
+			try {
+				t.join();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		PeerInfo largestPeer = this.peerInfo;
+		//get peer with largest ID from map
+		for(PeerInfo info : peerRing.keySet()){
+			if(largestPeer.getPeerID().compareTo(info.getPeerID())<0){
+				largestPeer = info;
+			}
+		}
+		
+		//updating superPeer
+		superPeerInfo = largestPeer;
+	}
+
+	/**
+	 * Used to update the fingerprint information about the other peers in the
+	 * ring
+	 */
+	@Override
+	public void updateRingInformation(PeerFingerprintInformation fingerprintInformation) {
+		peerRing.put(fingerprintInformation.getPeerInfo(), new ArrayList<Fingerprint>(fingerprintInformation.getFingerprints()));
 	}
 }

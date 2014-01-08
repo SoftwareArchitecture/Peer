@@ -85,8 +85,8 @@ public class PeerControl {
 		//that a new peer has appeared
 		matchingManager = new MatchingManager(peerManager);
 		
-		
 		communicationManager.setMatchingManager(matchingManager);
+		
 		matchingManager.setCommunicationManager(communicationManager);
 		
 		peerManager.setMatchingManager(matchingManager);
