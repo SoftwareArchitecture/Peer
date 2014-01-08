@@ -15,19 +15,20 @@ import org.apache.log4j.Logger;
 import ac.at.tuwien.infosys.swa.audio.Fingerprint;
 import ac.at.tuwien.infosys.swa.audio.FingerprintSystem;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.MusicFileInfo;
+import at.ac.tuwien.softwarearchitecture.swazam.peer.audioManager.IAudioManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.audioManager.RepositoryAccess;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.audioManager.RepositoryObserver;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.management.IPeerManager;
 
-public class FingerprintExtractorAndManager {
+public class FingerprintExtractorAndManager implements IFingerprintExtractorAndManager {
 	private FingerprintSystem fingerprintSystem = new FingerprintSystem(10);
 	private HashMap<Fingerprint, String> knownFingerprints = new HashMap<Fingerprint, String>();
 	private IPeerManager peerManager;
-
+	private IAudioManager audioManager;
 	public FingerprintExtractorAndManager(String repository, IPeerManager peerManager) {
 		this.peerManager = peerManager;
-		RepositoryObserver repositoryObserver = new RepositoryObserver(this);
-		repositoryObserver.setObservedDirectory(repository);
+		audioManager = new RepositoryAccess(this,repository);
+		
 		readCurrentRepository(repository);
 		peerManager.distributeFingerprints(knownFingerprints.keySet());
 	}
@@ -80,8 +81,8 @@ public class FingerprintExtractorAndManager {
 	}
 
 	public void readCurrentRepository(String repo) {
-		RepositoryAccess repositoryAccess = new RepositoryAccess();
-		HashMap<AudioInputStream, String> audios = repositoryAccess.getAllFilesFromDirectory(repo);
+		
+		HashMap<AudioInputStream, String> audios = audioManager.getAllFilesFromDirectory(repo);
 		for (Entry<AudioInputStream, String> audioInputStream : audios.entrySet()) {
 			try {
 				// System.out.println("Trying to get fingerprint for " +

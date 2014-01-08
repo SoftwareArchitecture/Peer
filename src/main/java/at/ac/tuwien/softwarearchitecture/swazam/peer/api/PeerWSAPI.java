@@ -10,7 +10,6 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.FingerprintSearchRequest;
-import at.ac.tuwien.softwarearchitecture.swazam.peer.util.PeerControl;
 
 @Provider
 @Path("/")

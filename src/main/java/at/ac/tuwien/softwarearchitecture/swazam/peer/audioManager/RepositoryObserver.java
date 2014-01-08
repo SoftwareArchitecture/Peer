@@ -15,10 +15,10 @@ import at.ac.tuwien.softwarearchitecture.swazam.peer.fingerprintExtractorAndMana
 
 
 public class RepositoryObserver{
-	private FingerprintExtractorAndManager musicFilesEvaluation;
-	private RepositoryAccess repositoryAccess = new RepositoryAccess();
-	public RepositoryObserver(FingerprintExtractorAndManager music){
-		musicFilesEvaluation=music;
+	private RepositoryAccess repositoryAccess;
+ 
+	public RepositoryObserver(RepositoryAccess access){
+		repositoryAccess=access;
 	}
 	public void setObservedDirectory(String path){
 		 File directory = new File(path);
@@ -38,7 +38,7 @@ public class RepositoryObserver{
 				//System.out.println(arg0.getName()+" was created ");
 				
 			for (Entry<AudioInputStream,String> entry:repositoryAccess.getAllFilesFromDirectory(arg0.getName()).entrySet()){
-				musicFilesEvaluation.addFingerprint(entry.getKey(), entry.getValue());
+				repositoryAccess.addNewFoundFile(entry.getKey(), entry.getValue());
 				try {
 					entry.getKey().close();
 				} catch (IOException e) {
@@ -52,7 +52,7 @@ public class RepositoryObserver{
 				//System.out.println(arg0.getName()+" was deleted ");
 				
 				for (Entry<AudioInputStream,String> entry:repositoryAccess.getAllFilesFromDirectory(arg0.getName()).entrySet())
-					musicFilesEvaluation.removeFingerprint(entry.getValue());
+					repositoryAccess.removeDeletedFile(entry.getValue());
 				
 			}
 
@@ -68,7 +68,7 @@ public class RepositoryObserver{
 			public void onFileCreate(File arg0) {
 				//System.out.println(arg0.getName()+" was created ");
 				AudioInputStream audioInputStream=repositoryAccess.getFileWithPath(arg0.getAbsolutePath());
-				musicFilesEvaluation.addFingerprint(audioInputStream,arg0.getName());
+				repositoryAccess.addNewFoundFile(audioInputStream,arg0.getName());
 				
 			}
 
@@ -76,7 +76,7 @@ public class RepositoryObserver{
 			public void onFileDelete(File arg0) {
 				//System.out.println(arg0.getName()+" was deleted ");
 				//AudioInputStream audioInputStream=repositoryAccess.getFileWithPath(arg0.getName());
-				musicFilesEvaluation.removeFingerprint(arg0.getName());
+				repositoryAccess.removeDeletedFile(arg0.getName());
 			}
 
 			@Override

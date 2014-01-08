@@ -13,7 +13,18 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-public class RepositoryAccess {
+import at.ac.tuwien.softwarearchitecture.swazam.peer.fingerprintExtractorAndManager.FingerprintExtractorAndManager;
+import at.ac.tuwien.softwarearchitecture.swazam.peer.fingerprintExtractorAndManager.IFingerprintExtractorAndManager;
+
+public class RepositoryAccess implements IAudioManager {
+	private RepositoryObserver repositoryObserver ;
+	private IFingerprintExtractorAndManager fingerprintExtractorAndManager;
+	public RepositoryAccess(IFingerprintExtractorAndManager fingerprintExtractorAndManager,String directoryPath){
+		repositoryObserver=new RepositoryObserver(this);
+		this.fingerprintExtractorAndManager=fingerprintExtractorAndManager;
+		repositoryObserver.setObservedDirectory(directoryPath);
+		
+	}
 	public AudioInputStream getFileWithPath(String path) {
 		try {
 			return AudioSystem.getAudioInputStream(new File(path));
@@ -22,7 +33,12 @@ public class RepositoryAccess {
 			return null;
 		}
 	}
-
+	public void addNewFoundFile(AudioInputStream audioInputStream, String fileName){
+		fingerprintExtractorAndManager.addFingerprint(audioInputStream, fileName);
+	}
+	public void removeDeletedFile(String fileName){
+		fingerprintExtractorAndManager.removeFingerprint( fileName);
+	}
 	public HashMap<AudioInputStream, String> getAllFilesFromDirectory(String directory) {
 		File folder = new File(directory);
 		File[] listOfFiles = folder.listFiles();

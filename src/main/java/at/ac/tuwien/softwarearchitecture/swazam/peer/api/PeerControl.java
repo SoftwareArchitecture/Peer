@@ -1,4 +1,4 @@
-package at.ac.tuwien.softwarearchitecture.swazam.peer.util;
+package at.ac.tuwien.softwarearchitecture.swazam.peer.api;
 
 import at.ac.tuwien.softwarearchitecture.swazam.peer.management.PeerManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.matching.MatchingManager;
