@@ -1,12 +1,16 @@
 package at.ac.tuwien.softwarearchitecture.swazam.peer.api;
 
-import at.ac.tuwien.softwarearchitecture.swazam.peer.management.PeerManager;
-import at.ac.tuwien.softwarearchitecture.swazam.peer.matching.MatchingManager;
-import at.ac.tuwien.softwarearchitecture.swazam.peer.serverCommunication.ServerCommunicationManager;
-import at.ac.tuwien.softwarearchitecture.swazam.peer.util.NetworkUtil;
 import java.io.InputStream;
 import java.util.Date;
+
 import org.apache.log4j.PropertyConfigurator;
+
+import at.ac.tuwien.softwarearchitecture.swazam.peer.management.IPeerManager;
+import at.ac.tuwien.softwarearchitecture.swazam.peer.management.PeerManager;
+import at.ac.tuwien.softwarearchitecture.swazam.peer.matching.IMatchingManager;
+import at.ac.tuwien.softwarearchitecture.swazam.peer.matching.MatchingManager;
+import at.ac.tuwien.softwarearchitecture.swazam.peer.serverCommunication.IServerCommunicationManager;
+import at.ac.tuwien.softwarearchitecture.swazam.peer.serverCommunication.ServerCommunicationManager;
 
 /**
  * 
@@ -14,11 +18,6 @@ import org.apache.log4j.PropertyConfigurator;
  *
  */
 public class PeerControl {
-    
-        
-    
-	private int defaultPort = 1234;
-	private String ip = "localhost";
 	
 	private ServerCommunicationManager communicationManager;
 	private MatchingManager matchingManager;
@@ -56,19 +55,40 @@ public class PeerControl {
                 
 	}
 	
+	
+	
+	public IServerCommunicationManager getCommunicationManager() {
+		return communicationManager;
+	}
+
+	public IMatchingManager getMatchingManager() {
+		return matchingManager;
+	}
+
+	public IPeerManager getPeerManager() {
+		return peerManager;
+	}
+
+	 
+
 	private PeerControl(){
-		//search for open port
-		
-		while(NetworkUtil.checkIfPortOpen(ip, defaultPort)){
-			defaultPort++;
-		}
-		
+	 
 		//instantiate all objects and their dependencies
-		peerManager = new PeerManager(ip, defaultPort);
-		matchingManager = new MatchingManager(peerManager);
+		//bad practice. instantiation sequence is crucial here
+		peerManager = new PeerManager();
 		communicationManager = new ServerCommunicationManager();
+		peerManager.setServerCommunicationManager(communicationManager);		
+		
+		
+		//currently, to respect the sequence diagram
+		//when the MatchingManager is instantiated, it instantiates a FingerprintExtractorAndManager which uses the PeerManager to notify the server using the ServerCommunicationManager
+		//that a new peer has appeared
+		matchingManager = new MatchingManager(peerManager);
+		
 		communicationManager.setMatchingManager(matchingManager);
+		
 		matchingManager.setCommunicationManager(communicationManager);
+		
 		peerManager.setMatchingManager(matchingManager);
 		
 	}

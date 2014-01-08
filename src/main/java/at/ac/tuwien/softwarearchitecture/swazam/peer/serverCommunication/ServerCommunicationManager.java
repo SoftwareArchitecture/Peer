@@ -1,6 +1,6 @@
 package at.ac.tuwien.softwarearchitecture.swazam.peer.serverCommunication;
 
-import java.util.List;
+import java.util.Collection;
 
 import ac.at.tuwien.infosys.swa.audio.Fingerprint;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.ClientInfo;
@@ -26,10 +26,12 @@ public class ServerCommunicationManager implements IServerCommunicationManager{
 	}
 
 	@Override
-	public void registerToServer(PeerInfo peerInfo, List<Fingerprint> perFingerprints) {
+	public PeerInfo registerToServer(PeerInfo peerInfo, Collection<Fingerprint> perFingerprints) {
 		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Not implemented yet");
 	}
 
+	//todo: rename to matchFile
 	@Override
 	public void forwardSearchRequest(ClientInfo clientInfo, Fingerprint fingerprintToSearch) {
 		matchingManager.matchFile(clientInfo, fingerprintToSearch);
