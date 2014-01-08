@@ -9,6 +9,7 @@ import at.ac.tuwien.softwarearchitecture.swazam.common.infos.ClientInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.PeerInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.ServerInfo;
 
+
 public class ConfigurationManagement {
 
 	private ConfigurationManagement() {

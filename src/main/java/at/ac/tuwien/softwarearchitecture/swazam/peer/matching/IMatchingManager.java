@@ -2,7 +2,6 @@ package at.ac.tuwien.softwarearchitecture.swazam.peer.matching;
 
 import ac.at.tuwien.infosys.swa.audio.Fingerprint;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.ClientInfo;
-import at.ac.tuwien.softwarearchitecture.swazam.common.infos.MusicFileInfo;
 
 public interface IMatchingManager {
 

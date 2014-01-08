@@ -1,21 +1,36 @@
 package at.ac.tuwien.softwarearchitecture.swazam.peer.management;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.xml.bind.JAXBContext;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import ac.at.tuwien.infosys.swa.audio.Fingerprint;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.ClientInfo;
+import at.ac.tuwien.softwarearchitecture.swazam.common.infos.FingerprintSearchRequest;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.PeerFingerprintInformation;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.PeerInfo;
 
 import at.ac.tuwien.softwarearchitecture.swazam.peer.fingerprintExtractorAndManager.FingerprintExtractorAndManager;
+import at.ac.tuwien.softwarearchitecture.swazam.peer.fingerprintExtractorAndManager.IFingerprintExtractorAndManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.matching.IMatchingManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.serverCommunication.ServerCommunicationManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.util.ConfigurationManagement;
@@ -39,8 +54,10 @@ public class PeerManager implements IPeerManager {
 	 */
 	private IMatchingManager matchingManager;
 	private ServerCommunicationManager serverCommunicationManager;
-	private FingerprintExtractorAndManager fingerprintExtractorAndManager;
-
+	private IFingerprintExtractorAndManager fingerprintExtractorAndManager;
+	private int MAX_IDLE_PERIOD = 20000;
+	private String REST_API_URL = "";
+	private Date latestSuperPeerRefreshMade = new Date();
 	// private List<PeerInfo> peerRing;
 	// {
 	// peerRing = new ArrayList<PeerInfo>();
@@ -53,7 +70,22 @@ public class PeerManager implements IPeerManager {
 	// this is ditributed to the Server and other peers and used in connecting
 	// to this Peer
 	private PeerInfo peerInfo;
-
+	class UtilCheckAlivePeriodSuperPeer implements Runnable{
+		  public void run(){
+		     while (true){
+		    	 Date currentDate=new Date();
+		    	 if (currentDate.getTime()-latestSuperPeerRefreshMade.getTime()>MAX_IDLE_PERIOD){
+		    		 performLeaderElection();
+		    	 }
+		    	 try {
+					Thread.sleep(20000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		     }
+		  }
+		}
 	private UUID peerID;
 
 	public PeerManager() {
@@ -61,8 +93,11 @@ public class PeerManager implements IPeerManager {
 		peerInfo = ConfigurationManagement.loadPeerInfo();
 		clientInfo = ConfigurationManagement.loadClientInfo();
 		peerID = generatePeerID();
+		UtilCheckAlivePeriodSuperPeer checkAlive = new UtilCheckAlivePeriodSuperPeer(); 
+		Thread myThread = new Thread(checkAlive);
+		myThread.start();
 	}
-
+	
 	private UUID generatePeerID() {
 
 		return UUID.nameUUIDFromBytes((peerInfo.getIp() + "_" + peerInfo.getPort()).getBytes());
@@ -128,11 +163,11 @@ public class PeerManager implements IPeerManager {
 		this.serverCommunicationManager = serverCommunicationManager;
 	}
 
-	public FingerprintExtractorAndManager getFingerprintExtractorAndManager() {
+	public IFingerprintExtractorAndManager getFingerprintExtractorAndManager() {
 		return fingerprintExtractorAndManager;
 	}
 
-	public void setFingerprintExtractorAndManager(FingerprintExtractorAndManager fingerprintExtractorAndManager) {
+	public void setFingerprintExtractorAndManager(IFingerprintExtractorAndManager fingerprintExtractorAndManager) {
 		this.fingerprintExtractorAndManager = fingerprintExtractorAndManager;
 	}
 
@@ -159,6 +194,52 @@ public class PeerManager implements IPeerManager {
 		// TODO Auto-generated method stub
 		if (this.peerID.equals(this.superPeerInfo.getPeerID())) {
 			// broadcast to all other peers in ring the search request
+			for (Entry<PeerInfo,List<Fingerprint>> entry :peerRing.entrySet()){
+				boolean isAlive = NetworkUtil.checkIfPortOpen(entry.getKey().getIp(), entry.getKey().getPort());
+				if (isAlive){
+					URL url = null;
+			        HttpURLConnection connection = null;
+			        try {   
+			            url = new URL(REST_API_URL + "/search");
+			            connection = (HttpURLConnection) url.openConnection();
+			            connection.setRequestMethod("POST");
+			            connection.setRequestProperty("Content-Type", "multipart/form");
+			            connection.setRequestProperty("Accept", "multipart/form");
+
+			            OutputStream os = connection.getOutputStream();
+			            JAXBContext jaxbContext = JAXBContext.newInstance(FingerprintSearchRequest.class);
+			            jaxbContext.createMarshaller().marshal(new FingerprintSearchRequest(clientInfo, fingerprint), os);
+			            os.flush();
+			            os.close();
+
+			            InputStream errorStream = connection.getErrorStream();
+			            if (errorStream != null) {
+			                BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
+			                String line;
+			                while ((line = reader.readLine()) != null) {
+			                    Logger.getLogger(PeerManager.class.getName()).log(Level.ERROR, line);
+			                }
+			            }
+
+			            InputStream inputStream = connection.getInputStream();
+			            if (inputStream != null) {
+			                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+			                String line;
+			                while ((line = reader.readLine()) != null) {
+			                    Logger.getLogger(PeerManager.class.getName()).log(Level.ERROR, line);
+			                }
+			            }
+			         if (connection!=null){
+			        	 connection.disconnect();
+			         }
+			        }catch(Exception e){
+			        	e.printStackTrace();
+			        }
+				}else{
+					peerRing.remove(entry.getKey());
+				}
+			
+			}
 		} else {
 			// just ignore request
 		}
@@ -168,18 +249,65 @@ public class PeerManager implements IPeerManager {
 	public void distributeFingerprints(Collection<Fingerprint> peerFingerprints) {
 		if (serverCommunicationManager != null) {
 			superPeerInfo = serverCommunicationManager.registerToServer(peerInfo, peerFingerprints);
+			for (Entry<PeerInfo,List<Fingerprint>> entry: peerRing.entrySet()){
+				boolean isAlive = NetworkUtil.checkIfPortOpen(entry.getKey().getIp(), entry.getKey().getPort());
+				if (isAlive){
+					URL url = null;
+			        HttpURLConnection connection = null;
+			        try {   
+			            url = new URL(REST_API_URL + "/fingerprints");
+			            connection = (HttpURLConnection) url.openConnection();
+			            connection.setRequestMethod("PUT");
+			            connection.setRequestProperty("Content-Type", "multipart/form");
+			            connection.setRequestProperty("Accept", "multipart/form");
+
+			            OutputStream os = connection.getOutputStream();
+			            JAXBContext jaxbContext = JAXBContext.newInstance(PeerFingerprintInformation.class);
+			            PeerFingerprintInformation fingerprintInformation=new PeerFingerprintInformation();
+			            fingerprintInformation.setFingerprints(peerFingerprints);
+			            jaxbContext.createMarshaller().marshal(fingerprintInformation, os);
+			            os.flush();
+			            os.close();
+
+			            InputStream errorStream = connection.getErrorStream();
+			            if (errorStream != null) {
+			                BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
+			                String line;
+			                while ((line = reader.readLine()) != null) {
+			                    Logger.getLogger(PeerManager.class.getName()).log(Level.ERROR, line);
+			                }
+			            }
+
+			            InputStream inputStream = connection.getInputStream();
+			            if (inputStream != null) {
+			                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+			                String line;
+			                while ((line = reader.readLine()) != null) {
+			                    Logger.getLogger(PeerManager.class.getName()).log(Level.ERROR, line);
+			                }
+			            }
+			         if (connection!=null){
+			        	 connection.disconnect();
+			         }
+			        }catch(Exception e){
+			        	e.printStackTrace();
+			        }
+				}else{
+					peerRing.remove(entry.getKey());
+				}
+			
+
+			}
 		} else {
 			Logger.getLogger(this.getClass()).log(Level.ERROR, "Peer Manager not instantiated properly. ServerCommunicationManager is null");
 		}
 	}
-
+	
 	@Override
 	public void updateSuperPeerInfo(PeerInfo superPeerInfo) {
 		this.superPeerInfo = superPeerInfo;
-		// TODO: need to add here something to mark the super peer id as
-		// changed.
-		// if not changed in specific interval, means super peer does not send
-		// its id anymore, thus its dead and leader election must take place
+		latestSuperPeerRefreshMade = new Date();
+		
 	}
 
 	@Override

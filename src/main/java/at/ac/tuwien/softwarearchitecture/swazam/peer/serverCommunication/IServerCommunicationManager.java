@@ -7,6 +7,7 @@ import at.ac.tuwien.softwarearchitecture.swazam.common.infos.ClientInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.MusicFileInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.PeerInfo;
 
+
 public interface IServerCommunicationManager {
 	/**
 	 * 

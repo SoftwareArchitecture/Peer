@@ -12,7 +12,7 @@ import org.apache.log4j.Logger;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.FingerprintSearchRequest;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.PeerFingerprintInformation;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.PeerInfo;
-
+import at.ac.tuwien.softwarearchitecture.swazam.peer.api.PeerControl;
 
 
 @Provider
@@ -39,7 +39,7 @@ public class PeerWSAPI {
      * Used in heart beat from SuperPeer to normal peers.
      */
     @PUT
-    @Path("/superPeerInfo")
+    @Path("/refreshSuperPeerInfo")
     @Consumes("multipart/form")
     public void refreshSuperPeerInfo(PeerInfo superPeerInfo) {
         Logger.getLogger(PeerWSAPI.class).log(Level.WARN, "Updated super peer ID: " + superPeerInfo.getPeerID());
@@ -49,7 +49,7 @@ public class PeerWSAPI {
     /**If SuperPeer info not updated at specific interval, super peer is considered dead and leader election takes place
     * @param superPeerInfo contains at least the UUID of the super peer */
     @POST
-    @Path("/superPeerInfo")
+    @Path("/leaderEllectionSuperPeerInfo")
     @Consumes("multipart/form")
     public void leaderEllectionSuperPeerInfo(PeerInfo superPeerInfo) {
         Logger.getLogger(PeerWSAPI.class).log(Level.WARN, "Updated super peer ID: " + superPeerInfo.getPeerID());
