@@ -1,9 +1,11 @@
 package at.ac.tuwien.softwarearchitecture.swazam.peer.api;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.Provider;
 
 import org.apache.log4j.Level;
@@ -12,7 +14,6 @@ import org.apache.log4j.Logger;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.FingerprintSearchRequest;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.PeerFingerprintInformation;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.PeerInfo;
-import at.ac.tuwien.softwarearchitecture.swazam.peer.api.PeerControl;
 
 
 @Provider
@@ -28,19 +29,19 @@ public class PeerWSAPI {
 
     @POST
     @Path("/search")
-    @Consumes("multipart/form")
+    @Consumes(MediaType.APPLICATION_XML)
     public void searchFingerprint(FingerprintSearchRequest searchRequest) {
         Logger.getLogger(PeerWSAPI.class).log(Level.WARN, searchRequest.getClientInfo().getClientID());
-        Logger.getLogger(PeerWSAPI.class).log(Level.WARN, searchRequest.getFingerprint().getShiftDuration());
-        peerControl.getCommunicationManager().forwardSearchRequest(searchRequest.getClientInfo(), searchRequest.getFingerprint());
+        Logger.getLogger(PeerWSAPI.class).log(Level.WARN, searchRequest.getFingerprint().getStartTime());
+        //peerControl.getCommunicationManager().forwardSearchRequest(searchRequest.getClientInfo(), searchRequest.getFingerprint());
     }
-
+ 
     /**
      * Used in heart beat from SuperPeer to normal peers.
      */
     @PUT
     @Path("/refreshSuperPeerInfo")
-    @Consumes("multipart/form")
+    @Consumes(MediaType.APPLICATION_XML)
     public void refreshSuperPeerInfo(PeerInfo superPeerInfo) {
         Logger.getLogger(PeerWSAPI.class).log(Level.WARN, "Updated super peer ID: " + superPeerInfo.getPeerID());
         peerControl.getPeerManager().updateSuperPeerInfo(superPeerInfo);
@@ -50,7 +51,7 @@ public class PeerWSAPI {
     * @param superPeerInfo contains at least the UUID of the super peer */
     @POST
     @Path("/leaderEllectionSuperPeerInfo")
-    @Consumes("multipart/form")
+    @Consumes(MediaType.APPLICATION_XML)
     public void leaderEllectionSuperPeerInfo(PeerInfo superPeerInfo) {
         Logger.getLogger(PeerWSAPI.class).log(Level.WARN, "Updated super peer ID: " + superPeerInfo.getPeerID());
         peerControl.getPeerManager().performLeaderElection();
@@ -58,11 +59,17 @@ public class PeerWSAPI {
     
     @PUT
     @Path("/fingerprints")
-    @Consumes("multipart/form")
+    @Consumes(MediaType.APPLICATION_XML)
     public void refreshSuperPeerInfo(PeerFingerprintInformation peerFingerprintInformation) {
     
         Logger.getLogger(PeerWSAPI.class).log(Level.WARN, "Updated super peer ID: " + peerFingerprintInformation.getPeerInfo().getIp());
         peerControl.getPeerManager().updateRingInformation(peerFingerprintInformation);
+    }
+    
+    @GET
+    @Path("/test")
+    public String test(){
+    	return "DDD";
     }
     
 }

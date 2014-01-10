@@ -1,5 +1,6 @@
 package at.ac.tuwien.softwarearchitecture.swazam.peer.util;
 
+import java.io.FileInputStream;
 import java.io.InputStream;
 
 import javax.xml.bind.JAXBContext;
@@ -23,8 +24,7 @@ public class ConfigurationManagement {
 	public static ClientInfo loadClientInfo() {
 		ClientInfo clientInfo = null;
 		try {
-			InputStream inputStream = ClassLoader
-					.getSystemResourceAsStream("/config/ClientInfo.xml");
+			InputStream inputStream = new FileInputStream("./config/ClientInfo.xml");
 
 			if (inputStream != null) {
 				 JAXBContext context = JAXBContext.newInstance(ClientInfo.class);
@@ -46,8 +46,7 @@ public class ConfigurationManagement {
 	public static ServerInfo loadServerInfo() {
 		ServerInfo serverInfo = null;
 		try {
-			InputStream inputStream = ClassLoader
-					.getSystemResourceAsStream("/config/ServerInfo.xml");
+			InputStream inputStream = new FileInputStream("./config/ServerInfo.xml");
 
 			if (inputStream != null) {
 				 JAXBContext context = JAXBContext.newInstance(ServerInfo.class);
@@ -69,8 +68,7 @@ public class ConfigurationManagement {
 	public static PeerInfo loadPeerInfo() {
 		PeerInfo peerInfo = null;
 		try {
-			InputStream inputStream = ClassLoader
-					.getSystemResourceAsStream("/config/PeerInfo.xml");
+			InputStream inputStream = new FileInputStream("./config/PeerInfo.xml");
 
 			if (inputStream != null) {
 				 JAXBContext context = JAXBContext.newInstance(PeerInfo.class);
@@ -82,6 +80,21 @@ public class ConfigurationManagement {
 			ex.printStackTrace();
 		}finally{
 			return peerInfo;
+		}
+	}
+	
+	/**
+	 * 
+	 * @return peer port, IP and ID, which are sent to the Server when registering, and to other Peer entities
+	 */
+	public static InputStream getLog4JConfig() {
+		InputStream inputStream= null;
+		try {
+			 inputStream = new FileInputStream("./config/Log4j.properties");
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}finally{
+			return inputStream;
 		}
 	}
 }

@@ -2,6 +2,9 @@ package at.ac.tuwien.softwarearchitecture.swazam.peer.serverCommunication;
 
 import java.util.Collection;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 import ac.at.tuwien.infosys.swa.audio.Fingerprint;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.ClientInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.MusicFileInfo;
@@ -28,7 +31,8 @@ public class ServerCommunicationManager implements IServerCommunicationManager{
 	@Override
 	public PeerInfo registerToServer(PeerInfo peerInfo, Collection<Fingerprint> perFingerprints) {
 		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Not implemented yet");
+		Logger.getLogger(this.getClass()).log(Level.ERROR, "Not implemented yet");
+		return new PeerInfo();
 	}
 
 	//todo: rename to matchFile
