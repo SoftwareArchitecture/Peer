@@ -64,7 +64,7 @@ public class PeerWSAPI {
     public void refreshSuperPeerInfo(PeerFingerprintInformation peerFingerprintInformation) {
     
         Logger.getLogger(PeerWSAPI.class).log(Level.WARN, "Updated super peer ID: " + peerFingerprintInformation.getPeerInfo().getIp());
-        peerControl.getPeerManager().updatePeerInformation(fingerprintInformation);
+        peerControl.getPeerManager().updatePeerInformation(peerFingerprintInformation);
     }
     
     @GET

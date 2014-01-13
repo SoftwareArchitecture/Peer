@@ -50,11 +50,12 @@ public class ServerCommunicationManager implements IServerCommunicationManager{
 		HttpURLConnection connection = null;
 		PeerInfo superPeerInfo = null;
 		try {
-			url = new URL("http://" + serverInfo.getIp()+":" + serverInfo.getPort()+"/webapi/peermanagement/registerpeer");
+			url = new URL("http://" + serverInfo.getIp()+":" + serverInfo.getPort()+"/Server/webapi/peermanagement/registerpeer");
 			connection = (HttpURLConnection) url.openConnection();
 			connection.setRequestMethod("POST");
 			connection.setRequestProperty("Content-Type", "application/xml");
 			connection.setRequestProperty("Accept", "application/xml");
+			connection.setDoOutput(true);
 
 			OutputStream os = connection.getOutputStream();
 			JAXBContext jaxbContext = JAXBContext.newInstance(PeerInfo.class);
@@ -67,7 +68,7 @@ public class ServerCommunicationManager implements IServerCommunicationManager{
 				BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
 				String line;
 				while ((line = reader.readLine()) != null) {
-					Logger.getLogger(PeerManager.class.getName()).log(Level.ERROR, line);
+					Logger.getLogger(ServerCommunicationManager.class.getName()).log(Level.ERROR, line);
 				}
 			}
 
@@ -79,7 +80,7 @@ public class ServerCommunicationManager implements IServerCommunicationManager{
 				connection.disconnect();
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			Logger.getLogger(ServerCommunicationManager.class.getName()).log(Level.ERROR, e);
 		}finally{
 			return superPeerInfo;
 		}
@@ -100,12 +101,13 @@ public class ServerCommunicationManager implements IServerCommunicationManager{
 				URL url = null;
 				HttpURLConnection connection = null;
 				try {
-					url = new URL("http://" + serverInfo.getIp()+":" + serverInfo.getPort()+"/webapi/peermanagement/searchresult");
+					url = new URL("http://" + serverInfo.getIp()+":" + serverInfo.getPort()+"/Server/webapi/peermanagement/searchresult");
 					connection = (HttpURLConnection) url.openConnection();
 					connection.setRequestMethod("POST");
 					connection.setRequestProperty("Content-Type", "application/xml");
 					connection.setRequestProperty("Accept", "application/xml");
-
+					connection.setDoOutput(true);
+					
 					OutputStream os = connection.getOutputStream();
 					JAXBContext jaxbContext = JAXBContext.newInstance(PeerInfo.class);
 					jaxbContext.createMarshaller().marshal(response, os);
@@ -126,14 +128,14 @@ public class ServerCommunicationManager implements IServerCommunicationManager{
 						BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 						String line;
 						while ((line = reader.readLine()) != null) {
-							Logger.getLogger(PeerManager.class.getName()).log(Level.ERROR, line);
+							Logger.getLogger(ServerCommunicationManager.class.getName()).log(Level.ERROR, line);
 						}
 					}
 					if (connection != null) {
 						connection.disconnect();
 					}
 				} catch (Exception e) {
-					e.printStackTrace();
+					Logger.getLogger(ServerCommunicationManager.class.getName()).log(Level.ERROR, e);
 				}
 			}
 		};

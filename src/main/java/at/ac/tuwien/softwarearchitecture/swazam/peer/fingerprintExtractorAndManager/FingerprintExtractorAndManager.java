@@ -31,7 +31,7 @@ public class FingerprintExtractorAndManager implements IFingerprintExtractorAndM
 		audioManager = new RepositoryAccess(this,repository);
 		
 		readCurrentRepository(repository);
-		peerManager.distributeFingerprints(knownFingerprints.keySet());
+		//peerManager.distributeFingerprints(knownFingerprints.keySet());
 	}
 
 	public IPeerManager getPeerManager() {
@@ -52,7 +52,6 @@ public class FingerprintExtractorAndManager implements IFingerprintExtractorAndM
 
 	public void removeFingerprint(Fingerprint fingerprint) {
 		knownFingerprints.remove(fingerprint);
-		peerManager.distributeFingerprints(knownFingerprints.keySet());
 	}
 
 	public void removeFingerprint(String fingerprintName) {
@@ -66,7 +65,7 @@ public class FingerprintExtractorAndManager implements IFingerprintExtractorAndM
 			knownFingerprints.remove(toDelete);
 		}
 		
-		peerManager.distributeFingerprints(knownFingerprints.keySet());
+		//peerManager.distributeFingerprints(knownFingerprints.keySet());
 	}
 	
 	
@@ -85,7 +84,7 @@ public class FingerprintExtractorAndManager implements IFingerprintExtractorAndM
 			Logger.getLogger(this.getClass()).log(Level.ERROR, e);
 		}
 		knownFingerprints.put(fingerprint, fileName);
-		peerManager.distributeFingerprints(knownFingerprints.keySet());
+		//peerManager.distributeFingerprints(knownFingerprints.keySet());
 	}
 
 	public void readCurrentRepository(String repo) {

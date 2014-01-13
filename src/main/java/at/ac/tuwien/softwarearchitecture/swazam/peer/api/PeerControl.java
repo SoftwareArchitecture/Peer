@@ -71,9 +71,8 @@ public class PeerControl {
 
 		// instantiate all objects and their dependencies
 		// bad practice. instantiation sequence is crucial here
-		peerManager = new PeerManager();
 		communicationManager = new ServerCommunicationManager();
-		peerManager.setServerCommunicationManager(communicationManager);
+		peerManager = new PeerManager(communicationManager);
 
 		// currently, to respect the sequence diagram
 		// when the MatchingManager is instantiated, it instantiates a

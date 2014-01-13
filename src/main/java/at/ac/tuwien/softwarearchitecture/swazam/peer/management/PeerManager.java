@@ -88,26 +88,23 @@ public class PeerManager implements IPeerManager {
 		}
 
 	};
+	
+	//used to check if super peer sent its info
+	Timer checkForSuperPeerRefreshRate;
 
 	private UUID peerID;
 
-	public PeerManager() {
+	 
+	public PeerManager(ServerCommunicationManager serverCommunicationManager) {
 		super();
+		this.serverCommunicationManager = serverCommunicationManager;
 		peerInfo = ConfigurationManagement.loadPeerInfo();
 		clientInfo = ConfigurationManagement.loadClientInfo();
 		peerID = generatePeerID();
-
-		Timer checkForSuperPeerRefreshRate = new Timer();
-
-		// schedule ad 2 seconds interval
-		checkForSuperPeerRefreshRate.schedule(checkAlivePeriodSuperPeer, 0, 2000);
-
-		Thread myThread = new Thread(checkAlivePeriodSuperPeer);
-		myThread.start();
+		registerToServer();
 	}
 
 	private UUID generatePeerID() {
-
 		return UUID.nameUUIDFromBytes((peerInfo.getIp() + "_" + peerInfo.getPort()).getBytes());
 	}
 
@@ -245,7 +242,7 @@ public class PeerManager implements IPeerManager {
 							connection.disconnect();
 						}
 					} catch (Exception e) {
-						e.printStackTrace();
+						Logger.getLogger(PeerManager.class.getName()).log(Level.ERROR, e);
 					}
 				} else {
 					peerRing.remove(entry.getKey());
@@ -260,6 +257,7 @@ public class PeerManager implements IPeerManager {
 	public void registerToServer() {
 		if (serverCommunicationManager != null) {
 			superPeerInfo = serverCommunicationManager.registerToServer(peerInfo);
+			Logger.getLogger(PeerManager.class).log(Level.WARN, "Retrieved superPeerID: " + superPeerInfo.getPeerID());
 		}
 		// broadcast all fingerprints to SuperPeer
 
@@ -273,6 +271,10 @@ public class PeerManager implements IPeerManager {
 		} else {
 			// else send its fingerprints to SuperPeer by joining ring
 			joinPeerNetwork();
+			// schedule at 2 seconds interval
+			checkForSuperPeerRefreshRate = new Timer();
+			//only check If I am super peer if I am NOT superPeer
+			checkForSuperPeerRefreshRate.schedule(checkAlivePeriodSuperPeer, 0, 2000);
 		}
 	}
 
@@ -324,7 +326,7 @@ public class PeerManager implements IPeerManager {
 					connection.disconnect();
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
+				Logger.getLogger(PeerManager.class.getName()).log(Level.ERROR, e);
 			}
 		} else {
 			Logger.getLogger(this.getClass()).log(Level.ERROR,
@@ -363,7 +365,7 @@ public class PeerManager implements IPeerManager {
 				t.join();
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				Logger.getLogger(PeerManager.class.getName()).log(Level.ERROR, e);
 			}
 		}
 
@@ -386,6 +388,7 @@ public class PeerManager implements IPeerManager {
 		} else {
 			// else send its fingerprints to SuperPeer by joining ring
 			joinPeerNetwork();
+			
 		}
 	}
 
