@@ -15,11 +15,11 @@ public interface IServerCommunicationManager {
 	 * @param perFingerprints
 	 * @return the superPeerInfo
 	 */
-	public PeerInfo registerToServer(PeerInfo peerInfo, Collection<Fingerprint> perFingerprints);
+	public PeerInfo registerToServer(PeerInfo peerInfo);
 	
 	//method for broadcasting requests to other peers in sub-peer ring
-	public void forwardSearchRequest(ClientInfo clientInfo, Fingerprint fingerprintToSearch);
+	public void matchFile(ClientInfo clientInfo, Fingerprint fingerprintToSearch);
     
-	public void notifyAboutSearchResult(ClientInfo clientInfo, MusicFileInfo result);
+	public void notifyAboutSearchResult(ClientInfo clientInfo, PeerInfo peerInfo, MusicFileInfo result);
 	
 }

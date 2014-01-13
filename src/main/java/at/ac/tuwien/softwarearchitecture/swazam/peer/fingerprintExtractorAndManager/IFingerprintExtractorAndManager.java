@@ -1,6 +1,7 @@
 package at.ac.tuwien.softwarearchitecture.swazam.peer.fingerprintExtractorAndManager;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -30,4 +31,6 @@ public interface IFingerprintExtractorAndManager {
 	public void readCurrentRepository(String repo) ;
 
 	public MusicFileInfo evaluateFingerprint(Fingerprint fingerprint) ;
+	
+	public Collection<Fingerprint> getKnownFingerprints();
 }

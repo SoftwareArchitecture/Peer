@@ -3,6 +3,7 @@ package at.ac.tuwien.softwarearchitecture.swazam.peer.fingerprintExtractorAndMan
 import java.awt.datatransfer.SystemFlavorMap;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
@@ -67,6 +68,13 @@ public class FingerprintExtractorAndManager implements IFingerprintExtractorAndM
 		
 		peerManager.distributeFingerprints(knownFingerprints.keySet());
 	}
+	
+	
+
+	public Collection<Fingerprint> getKnownFingerprints() {
+		return knownFingerprints.keySet();
+	}
+ 
 
 	public void addFingerprint(AudioInputStream audioInputStream, String fileName) {
 		Fingerprint fingerprint = null;

@@ -39,10 +39,6 @@ public class PeerControl {
 			System.getProperties().put("recording_date", date);
 
 			try {
-				ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-				// ClassLoader classLoader =
-				// Configuration.class.getClassLoader();
-
 				InputStream log4jStream = ConfigurationManagement.getLog4JConfig();
 
 				if (log4jStream != null) {

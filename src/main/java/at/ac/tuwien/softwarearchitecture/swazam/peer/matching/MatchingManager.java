@@ -38,7 +38,7 @@ public class MatchingManager implements IMatchingManager {
 				// if not found, and if seed, broadcast request to other peers
 				// in ring
 				if (!fileInfo.isEmpty()) {
-					communicationManager.notifyAboutSearchResult(clientInfo, fileInfo);
+					communicationManager.notifyAboutSearchResult(clientInfo, peerManager.getCurrentPeerInformation(), fileInfo);
 				} else {
 					peerManager.forwardSearchRequest(clientInfo, fingerprint);
 				}
