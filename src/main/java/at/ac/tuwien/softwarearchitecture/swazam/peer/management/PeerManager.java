@@ -201,12 +201,13 @@ public class PeerManager implements IPeerManager {
 	public void forwardSearchRequest(ClientInfo clientInfo, Fingerprint fingerprint) {
 		// TODO Auto-generated method stub
 		if (this.peerID.equals(this.superPeerInfo.getPeerID())) {
-			// broadcast to all other peers in ring the search request. 
-			
+			// broadcast to all other peers in ring the search request.
+
 			for (Entry<PeerInfo, List<Fingerprint>> entry : peerRing.entrySet()) {
-				
-				//TODO: Reduce this to broadcast only to one having the fingerprint.
-				
+
+				// TODO: Reduce this to broadcast only to one having the
+				// fingerprint.
+
 				boolean isAlive = NetworkUtil.checkIfPortOpen(entry.getKey().getIp(), entry.getKey().getPort());
 				if (isAlive) {
 					URL url = null;
@@ -261,7 +262,18 @@ public class PeerManager implements IPeerManager {
 			superPeerInfo = serverCommunicationManager.registerToServer(peerInfo);
 		}
 		// broadcast all fingerprints to SuperPeer
-		joinPeerNetwork();
+
+		// if I am first in Ring, server will return my info as SuperPeer
+
+		// if I am superPeer, start behavior for sending heartbeat with my Info
+		if (superPeerInfo.getPeerID().equals(peerInfo.getPeerID())) {
+			Timer heartbeatTimer = new Timer();
+			// schedule at 1.5 seconds
+			heartbeatTimer.schedule(broadcastSuperPeerInfoHeartbeat, 0, 1500);
+		} else {
+			// else send its fingerprints to SuperPeer by joining ring
+			joinPeerNetwork();
+		}
 	}
 
 	/**
@@ -366,13 +378,13 @@ public class PeerManager implements IPeerManager {
 		// updating superPeer
 		superPeerInfo = largestPeer;
 
-		//if I am superPeer, start behavior for sending heartbeat with my Info
-		if(superPeerInfo.getPeerID().equals(peerInfo.getPeerID())){
+		// if I am superPeer, start behavior for sending heartbeat with my Info
+		if (superPeerInfo.getPeerID().equals(peerInfo.getPeerID())) {
 			Timer heartbeatTimer = new Timer();
-			//schedule at 1.5 seconds
+			// schedule at 1.5 seconds
 			heartbeatTimer.schedule(broadcastSuperPeerInfoHeartbeat, 0, 1500);
-		}else{
-			//else send its fingerprints to SuperPeer by joining ring
+		} else {
+			// else send its fingerprints to SuperPeer by joining ring
 			joinPeerNetwork();
 		}
 	}
@@ -451,7 +463,7 @@ public class PeerManager implements IPeerManager {
 			t.setDaemon(true);
 			t.start();
 		}
-		 
+
 	}
 
 	@Override
