@@ -2,6 +2,7 @@ package at.ac.tuwien.softwarearchitecture.swazam.peer.util;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.Properties;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
@@ -97,4 +98,24 @@ public class ConfigurationManagement {
 			return inputStream;
 		}
 	}
+	
+	public static String getMusicRepositoryPath(){
+		String path = "";
+		InputStream inputStream= null;
+		try {
+			 inputStream = new FileInputStream("./config/Config.properties");
+			 Properties p = new Properties();
+			 p.load(inputStream);
+			 
+			 if (p.containsKey("musicRepository")){
+				 path= p.getProperty("musicRepository");
+			 }  
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally{
+			return path;
+		}
+	}
+	
+	
 }

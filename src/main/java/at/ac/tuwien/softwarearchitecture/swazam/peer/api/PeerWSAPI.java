@@ -32,9 +32,8 @@ public class PeerWSAPI {
     @Path("/search")
     @Consumes(MediaType.APPLICATION_XML)
     public void searchFingerprint(FingerprintSearchRequest searchRequest) {
-        Logger.getLogger(PeerWSAPI.class).log(Level.WARN, searchRequest.getClientInfo().getClientID());
-        Logger.getLogger(PeerWSAPI.class).log(Level.WARN, searchRequest.getFingerprint().getStartTime());
-        //peerControl.getCommunicationManager().forwardSearchRequest(searchRequest.getClientInfo(), searchRequest.getFingerprint());
+        Logger.getLogger(PeerWSAPI.class).log(Level.WARN,"SessionID for search " + searchRequest.getClientInfo().getSessionKey());
+        peerControl.getCommunicationManager().matchFile(searchRequest.getClientInfo(), searchRequest.getFingerprint());
     }
  
     /**
@@ -68,9 +67,9 @@ public class PeerWSAPI {
     }
     
     @GET
-    @Path("/test")
+    @Path("/initiate")
     public String test(){
-    	return "DDD";
+    	return "Peer Initiated";
     }
     
 }

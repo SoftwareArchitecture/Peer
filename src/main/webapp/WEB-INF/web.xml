@@ -21,7 +21,7 @@
         </session-timeout>
     </session-config>
     <welcome-file-list>
-        <welcome-file>index.html</welcome-file>
+        <welcome-file>/REST_API/initiate</welcome-file>
     </welcome-file-list>
    
 </web-app>

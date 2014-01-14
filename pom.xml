@@ -140,6 +140,9 @@
                                 <copy todir="${basedir}/target/config">
                                     <fileset dir="${basedir}/config" includes="**/*" />
                                 </copy>
+                                <copy todir="${basedir}/target/music">
+                                    <fileset dir="${basedir}/music" includes="**/*" />
+                                </copy>
                                 <copy file="${basedir}/peer-service" tofile="${basedir}/target/peer-service" />
                             </target>
                         </configuration>
