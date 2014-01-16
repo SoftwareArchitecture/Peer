@@ -34,449 +34,451 @@ import at.ac.tuwien.softwarearchitecture.swazam.peer.util.ConfigurationManagemen
 import at.ac.tuwien.softwarearchitecture.swazam.peer.util.NetworkUtil;
 
 public class PeerManager implements IPeerManager {
-	/*
-	 * holds the peer ring information, i.e. the rest of the peers in the ring.
-	 * Replaced with List<IDs> for privacy, to avoid a super peer or other peers
-	 * knowing the content of all other peers
-	 */
+    /*
+     * holds the peer ring information, i.e. the rest of the peers in the ring.
+     * Replaced with List<IDs> for privacy, to avoid a super peer or other peers
+     * knowing the content of all other peers
+     */
 
-	private Map<PeerInfo, List<Fingerprint>> peerRing;
+    private Map<PeerInfo, List<Fingerprint>> peerRing;
 
-	{
-		peerRing = new HashMap<PeerInfo, List<Fingerprint>>();
-	}
-	/**
-	 * In the case a SubPeer receives a request from the SuperPeer, the request
-	 * is
-	 */
-	private IMatchingManager matchingManager;
-	private ServerCommunicationManager serverCommunicationManager;
-	private IFingerprintExtractorAndManager fingerprintExtractorAndManager;
-	private int MAX_IDLE_PERIOD = 20000;
+    {
+        peerRing = new HashMap<PeerInfo, List<Fingerprint>>();
+    }
+    /**
+     * In the case a SubPeer receives a request from the SuperPeer, the request
+     * is
+     */
+    private IMatchingManager matchingManager;
+    private ServerCommunicationManager serverCommunicationManager;
+    private IFingerprintExtractorAndManager fingerprintExtractorAndManager;
+    private int MAX_IDLE_PERIOD = 20000;
+    private Date latestSuperPeerRefreshMade = new Date();
+    // private List<PeerInfo> peerRing;
+    // {
+    // peerRing = new ArrayList<PeerInfo>();
+    // }
+    // info used to bill a client for search/result
+    private ClientInfo clientInfo;
+    // information regarding the current Peer
+    // this is ditributed to the Server and other peers and used in connecting
+    // to this Peer
+    private PeerInfo peerInfo;
+    // it can be scheduled at specific intervals
+    private TimerTask checkAlivePeriodSuperPeer = new TimerTask() {
+        public void run() {
+            Date currentDate = new Date();
+            if (currentDate.getTime() - latestSuperPeerRefreshMade.getTime() > MAX_IDLE_PERIOD) {
+                performLeaderElection();
+            }
+        }
+    };
+    /**
+     * If the current peer is superPeer, it needs to continuously broadcast to
+     * other peers its info
+     */
+    private TimerTask broadcastSuperPeerInfoHeartbeat = new TimerTask() {
+        public void run() {
+            broadcastSuperPeerInfoHeartBeat();
+        }
+    };
+    //used to check if super peer sent its info
+    Timer checkForSuperPeerRefreshRate;
+    private UUID peerID;
 
-	private Date latestSuperPeerRefreshMade = new Date();
-	// private List<PeerInfo> peerRing;
-	// {
-	// peerRing = new ArrayList<PeerInfo>();
-	// }
-	private PeerInfo superPeerInfo;
+    public PeerManager(ServerCommunicationManager serverCommunicationManager) {
+        super();
+        this.serverCommunicationManager = serverCommunicationManager;
+        peerInfo = ConfigurationManagement.loadPeerInfo();
+        Logger.getLogger(PeerManager.class).log(Level.WARN, peerInfo);
+        clientInfo = ConfigurationManagement.loadClientInfo();
+        peerInfo.setPassword(clientInfo.getPassword());
+        peerInfo.setUsername(clientInfo.getUsername());
+        peerID = generatePeerID();
+        registerToServer();
+    }
 
-	// info used to bill a client for search/result
-	private ClientInfo clientInfo;
-	// information regarding the current Peer
-	// this is ditributed to the Server and other peers and used in connecting
-	// to this Peer
-	private PeerInfo peerInfo;
+    private UUID generatePeerID() {
+        return UUID.nameUUIDFromBytes((peerInfo.getIp() + "_" + peerInfo.getPort()).getBytes());
+    }
 
-	// it can be scheduled at specific intervals
-	private TimerTask checkAlivePeriodSuperPeer = new TimerTask() {
-		public void run() {
-			Date currentDate = new Date();
-			if (currentDate.getTime() - latestSuperPeerRefreshMade.getTime() > MAX_IDLE_PERIOD) {
-				performLeaderElection();
-			}
-		}
-	};
+    public UUID getPeerID() {
+        return peerID;
+    }
 
-	/**
-	 * If the current peer is superPeer, it needs to continuously broadcast to
-	 * other peers its info
-	 */
-	private TimerTask broadcastSuperPeerInfoHeartbeat = new TimerTask() {
-		public void run() {
-			broadcastSuperPeerInfoHeartBeat();
-		}
+    public Map<PeerInfo, List<Fingerprint>> getPeerRing() {
+        return peerRing;
+    }
 
-	};
-	
-	//used to check if super peer sent its info
-	Timer checkForSuperPeerRefreshRate;
+    public void setPeerRing(Map<PeerInfo, List<Fingerprint>> peerRing) {
+        this.peerRing = peerRing;
+    }
 
-	private UUID peerID;
+    public void addPeers(Map<PeerInfo, List<Fingerprint>> peerRing) {
+        this.peerRing.putAll(peerRing);
+    }
 
-	 
-	public PeerManager(ServerCommunicationManager serverCommunicationManager) {
-		super();
-		this.serverCommunicationManager = serverCommunicationManager;
-		peerInfo = ConfigurationManagement.loadPeerInfo();
-		clientInfo = ConfigurationManagement.loadClientInfo();
-		peerID = generatePeerID();
-		registerToServer();
-	}
+    public void addPeer(PeerInfo peer, List<Fingerprint> fingerprints) {
+        this.peerRing.put(peer, fingerprints);
+    }
 
-	private UUID generatePeerID() {
-		return UUID.nameUUIDFromBytes((peerInfo.getIp() + "_" + peerInfo.getPort()).getBytes());
-	}
+    public IMatchingManager getMatchingManager() {
+        return matchingManager;
+    }
 
-	public UUID getPeerID() {
-		return peerID;
-	}
+    public void setMatchingManager(IMatchingManager matchingManager) {
+        this.matchingManager = matchingManager;
+    }
 
-	public Map<PeerInfo, List<Fingerprint>> getPeerRing() {
-		return peerRing;
-	}
+    public PeerInfo getPeerInfo() {
+        return peerInfo;
+    }
 
-	public void setPeerRing(Map<PeerInfo, List<Fingerprint>> peerRing) {
-		this.peerRing = peerRing;
-	}
+    public void setPeerInfo(PeerInfo peerInfo) {
+        this.peerInfo = peerInfo;
+    }
 
-	public void addPeers(Map<PeerInfo, List<Fingerprint>> peerRing) {
-		this.peerRing.putAll(peerRing);
-	}
+    public void setPeerID(UUID peerID) {
+        this.peerID = peerID;
+    }
 
-	public void addPeer(PeerInfo peer, List<Fingerprint> fingerprints) {
-		this.peerRing.put(peer, fingerprints);
-	}
+    public ClientInfo getClientInfo() {
+        return clientInfo;
+    }
 
-	public IMatchingManager getMatchingManager() {
-		return matchingManager;
-	}
+    public void setClientInfo(ClientInfo clientInfo) {
+        this.clientInfo = clientInfo;
+    }
 
-	public void setMatchingManager(IMatchingManager matchingManager) {
-		this.matchingManager = matchingManager;
-	}
+    public ServerCommunicationManager getServerCommunicationManager() {
+        return serverCommunicationManager;
+    }
 
-	public PeerInfo getPeerInfo() {
-		return peerInfo;
-	}
+    public void setServerCommunicationManager(ServerCommunicationManager serverCommunicationManager) {
+        this.serverCommunicationManager = serverCommunicationManager;
+    }
 
-	public void setPeerInfo(PeerInfo peerInfo) {
-		this.peerInfo = peerInfo;
-	}
+    public IFingerprintExtractorAndManager getFingerprintExtractorAndManager() {
+        return fingerprintExtractorAndManager;
+    }
 
-	public void setPeerID(UUID peerID) {
-		this.peerID = peerID;
-	}
+    public void setFingerprintExtractorAndManager(IFingerprintExtractorAndManager fingerprintExtractorAndManager) {
+        this.fingerprintExtractorAndManager = fingerprintExtractorAndManager;
+    }
 
-	public PeerInfo getsuperPeerInfo() {
-		return superPeerInfo;
-	}
+    /**
+     * takes the request and forwards it to the MatchingManager. It is used in
+     * case a search is forwarded to this peer from another PeerManager
+     */
+    @Override
+    public void searchFingerprint(final ClientInfo client, final Fingerprint fingerprint) {
+        Thread matchingThread = new Thread() {
+            public void run() {
+                if (matchingManager != null) {
+                    matchingManager.matchFile(client, fingerprint);
+                }
+            }
+        };
 
-	public ClientInfo getClientInfo() {
-		return clientInfo;
-	}
+        matchingThread.setDaemon(true);
+        matchingThread.start();
+    }
 
-	public void setClientInfo(ClientInfo clientInfo) {
-		this.clientInfo = clientInfo;
-	}
+    @Override
+    public void forwardSearchRequest(ClientInfo clientInfo, Fingerprint fingerprint) {
+        // TODO Auto-generated method stub
+        if (this.peerID.equals(this.peerInfo.getSuperPeerID())) {
+            // broadcast to all other peers in ring the search request.
 
-	public ServerCommunicationManager getServerCommunicationManager() {
-		return serverCommunicationManager;
-	}
+            for (Entry<PeerInfo, List<Fingerprint>> entry : peerRing.entrySet()) {
 
-	public void setServerCommunicationManager(ServerCommunicationManager serverCommunicationManager) {
-		this.serverCommunicationManager = serverCommunicationManager;
-	}
+                // TODO: Reduce this to broadcast only to one having the
+                // fingerprint.
 
-	public IFingerprintExtractorAndManager getFingerprintExtractorAndManager() {
-		return fingerprintExtractorAndManager;
-	}
+                boolean isAlive = NetworkUtil.checkIfPortOpen(entry.getKey().getIp(), entry.getKey().getPort());
+                if (isAlive) {
+                    URL url = null;
+                    HttpURLConnection connection = null;
+                    try {
+                        url = new URL("http://" + entry.getKey().getIp() + ":" + entry.getKey().getPort() + "/Peer/REST_API/search");
+                        connection = (HttpURLConnection) url.openConnection();
+                        connection.setRequestMethod("POST");
+                        connection.setRequestProperty("Content-Type", "application/xml");
 
-	public void setFingerprintExtractorAndManager(IFingerprintExtractorAndManager fingerprintExtractorAndManager) {
-		this.fingerprintExtractorAndManager = fingerprintExtractorAndManager;
-	}
+                        OutputStream os = connection.getOutputStream();
+                        JAXBContext jaxbContext = JAXBContext.newInstance(FingerprintSearchRequest.class);
+                        jaxbContext.createMarshaller().marshal(new FingerprintSearchRequest(clientInfo, fingerprint), os);
+                        os.flush();
+                        os.close();
 
-	/**
-	 * takes the request and forwards it to the MatchingManager. It is used in
-	 * case a search is forwarded to this peer from another PeerManager
-	 */
-	@Override
-	public void searchFingerprint(final ClientInfo client, final Fingerprint fingerprint) {
-		Thread matchingThread = new Thread() {
-			public void run() {
-				if (matchingManager != null) {
-					matchingManager.matchFile(client, fingerprint);
-				}
-			}
-		};
+                        InputStream errorStream = connection.getErrorStream();
+                        if (errorStream != null) {
+                            BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
+                            String line;
+                            while ((line = reader.readLine()) != null) {
+                                Logger.getLogger(PeerManager.class.getName()).log(Level.ERROR, line);
+                            }
+                        }
 
-		matchingThread.setDaemon(true);
-		matchingThread.start();
-	}
+                        InputStream inputStream = connection.getInputStream();
+                        if (inputStream != null) {
+                            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+                            String line;
+                            while ((line = reader.readLine()) != null) {
+                                Logger.getLogger(PeerManager.class.getName()).log(Level.ERROR, line);
+                            }
+                        }
+                        if (connection != null) {
+                            connection.disconnect();
+                        }
+                    } catch (Exception e) {
+                        Logger.getLogger(PeerManager.class.getName()).log(Level.ERROR, e);
+                    }
+                } else {
+                    peerRing.remove(entry.getKey());
+                }
 
-	@Override
-	public void forwardSearchRequest(ClientInfo clientInfo, Fingerprint fingerprint) {
-		// TODO Auto-generated method stub
-		if (this.peerID.equals(this.superPeerInfo.getPeerID())) {
-			// broadcast to all other peers in ring the search request.
+            }
+        } else {
+            // just ignore request
+        }
+    }
 
-			for (Entry<PeerInfo, List<Fingerprint>> entry : peerRing.entrySet()) {
+    public void registerToServer() {
+        if (serverCommunicationManager != null) {
+            peerInfo = serverCommunicationManager.registerToServer(peerInfo);
+            Logger.getLogger(PeerManager.class).log(Level.WARN, "Retrieved peerID: " + peerInfo.getPeerID() + " and superPeerID " + peerInfo.getSuperPeerID());
+        }
+        // broadcast all fingerprints to SuperPeer
 
-				// TODO: Reduce this to broadcast only to one having the
-				// fingerprint.
+        // if I am first in Ring, server will return my info as SuperPeer
 
-				boolean isAlive = NetworkUtil.checkIfPortOpen(entry.getKey().getIp(), entry.getKey().getPort());
-				if (isAlive) {
-					URL url = null;
-					HttpURLConnection connection = null;
-					try {
-						url = new URL("http://" + entry.getKey().getIp() + ":" + entry.getKey().getPort() + "/Peer/REST_API/search");
-						connection = (HttpURLConnection) url.openConnection();
-						connection.setRequestMethod("POST");
-						connection.setRequestProperty("Content-Type", "application/xml");
+        // if I am superPeer, start behavior for sending heartbeat with my Info
+        if (peerInfo.getSuperPeerID().equals(peerInfo.getPeerID())) {
+            Timer heartbeatTimer = new Timer();
+            // schedule at 1.5 seconds
+            heartbeatTimer.schedule(broadcastSuperPeerInfoHeartbeat, 0, 1500);
+        } else {
+            // else send its fingerprints to SuperPeer by joining ring
+            joinPeerNetwork();
+            // schedule at 2 seconds interval
+            checkForSuperPeerRefreshRate = new Timer();
+            //only check If I am super peer if I am NOT superPeer
+            checkForSuperPeerRefreshRate.schedule(checkAlivePeriodSuperPeer, 0, 2000);
+        }
+    }
 
-						OutputStream os = connection.getOutputStream();
-						JAXBContext jaxbContext = JAXBContext.newInstance(FingerprintSearchRequest.class);
-						jaxbContext.createMarshaller().marshal(new FingerprintSearchRequest(clientInfo, fingerprint), os);
-						os.flush();
-						os.close();
+    /**
+     * Sends its information (PeerInfo and Fingerprints) to the SuperPeer, and
+     * receives Ring Information
+     */
+    @Override
+    public void joinPeerNetwork() {
 
-						InputStream errorStream = connection.getErrorStream();
-						if (errorStream != null) {
-							BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
-							String line;
-							while ((line = reader.readLine()) != null) {
-								Logger.getLogger(PeerManager.class.getName()).log(Level.ERROR, line);
-							}
-						}
+        // check if SuperPeer is alive
+        boolean isAlive = NetworkUtil.checkIfPortOpen(peerInfo.getSuperPeerIp(), peerInfo.getSuperPeerPort());
+        if (isAlive) {
+            URL url = null;
+            HttpURLConnection connection = null;
+            try {
+                url = new URL("http://" + peerInfo.getSuperPeerIp() + ":" + peerInfo.getSuperPeerPort() + "/Peer/REST_API/fingerprints");
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("PUT");
+                connection.setRequestProperty("Content-Type", "application/xml");
+                connection.setRequestProperty("Accept", "application/xml");
 
-						InputStream inputStream = connection.getInputStream();
-						if (inputStream != null) {
-							BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-							String line;
-							while ((line = reader.readLine()) != null) {
-								Logger.getLogger(PeerManager.class.getName()).log(Level.ERROR, line);
-							}
-						}
-						if (connection != null) {
-							connection.disconnect();
-						}
-					} catch (Exception e) {
-						Logger.getLogger(PeerManager.class.getName()).log(Level.ERROR, e);
-					}
-				} else {
-					peerRing.remove(entry.getKey());
-				}
+                OutputStream os = connection.getOutputStream();
+                JAXBContext jaxbContext = JAXBContext.newInstance(PeerFingerprintInformation.class);
+                PeerFingerprintInformation fingerprintInformation = new PeerFingerprintInformation();
+                fingerprintInformation.setFingerprints(this.fingerprintExtractorAndManager.getKnownFingerprints());
+                jaxbContext.createMarshaller().marshal(fingerprintInformation, os);
+                os.flush();
+                os.close();
 
-			}
-		} else {
-			// just ignore request
-		}
-	}
+                InputStream errorStream = connection.getErrorStream();
+                if (errorStream != null) {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        Logger.getLogger(PeerManager.class.getName()).log(Level.ERROR, line);
+                    }
+                }
 
-	public void registerToServer() {
-		if (serverCommunicationManager != null) {
-			superPeerInfo = serverCommunicationManager.registerToServer(peerInfo);
-			Logger.getLogger(PeerManager.class).log(Level.WARN, "Retrieved superPeerID: " + superPeerInfo.getPeerID());
-		}
-		// broadcast all fingerprints to SuperPeer
+                InputStream inputStream = connection.getInputStream();
+                if (inputStream != null) {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        Logger.getLogger(PeerManager.class.getName()).log(Level.ERROR, line);
+                    }
+                }
+                if (connection != null) {
+                    connection.disconnect();
+                }
+            } catch (Exception e) {
+                Logger.getLogger(PeerManager.class.getName()).log(Level.ERROR, e);
+            }
+        } else {
+            Logger.getLogger(this.getClass()).log(Level.ERROR,
+                    "SuperPeer " + peerInfo.getSuperPeerIp() + ":" + peerInfo.getSuperPeerPort() + " is not responding. Unable to register");
+        }
 
-		// if I am first in Ring, server will return my info as SuperPeer
+    }
 
-		// if I am superPeer, start behavior for sending heartbeat with my Info
-		if (superPeerInfo.getPeerID().equals(peerInfo.getPeerID())) {
-			Timer heartbeatTimer = new Timer();
-			// schedule at 1.5 seconds
-			heartbeatTimer.schedule(broadcastSuperPeerInfoHeartbeat, 0, 1500);
-		} else {
-			// else send its fingerprints to SuperPeer by joining ring
-			joinPeerNetwork();
-			// schedule at 2 seconds interval
-			checkForSuperPeerRefreshRate = new Timer();
-			//only check If I am super peer if I am NOT superPeer
-			checkForSuperPeerRefreshRate.schedule(checkAlivePeriodSuperPeer, 0, 2000);
-		}
-	}
+    @Override
+    public void performLeaderElection() {
+        // test which Peer is alive. And the Peer with largest ID is compared to
+        // this, and the largest ID wins
 
-	/**
-	 * Sends its information (PeerInfo and Fingerprints) to the SuperPeer, and
-	 * receives Ring Information
-	 */
-	@Override
-	public void joinPeerNetwork() {
+        // refresh ring by checking who is still alive
+        List<Thread> ringRefreshThreads = new ArrayList<Thread>();
+        for (final PeerInfo info : peerRing.keySet()) {
+            Thread thread = new Thread() {
+                public void run() {
+                    // check if Peer is alive (if port is not closed)
+                    boolean isAlive = NetworkUtil.checkIfPortOpen(info.getIp(), info.getPort());
+                    if (!isAlive) {
+                        peerRing.remove(info);
+                    }
+                }
+            };
+            ringRefreshThreads.add(thread);
+        }
+        // start threads
+        for (Thread t : ringRefreshThreads) {
+            t.setDaemon(true);
+            t.start();
+        }
+        // wait for threads to finish
+        for (Thread t : ringRefreshThreads) {
+            try {
+                t.join();
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                Logger.getLogger(PeerManager.class.getName()).log(Level.ERROR, e);
+            }
+        }
 
-		// check if SuperPeer is alive
-		boolean isAlive = NetworkUtil.checkIfPortOpen(superPeerInfo.getIp(), superPeerInfo.getPort());
-		if (isAlive) {
-			URL url = null;
-			HttpURLConnection connection = null;
-			try {
-				url = new URL("http://" + superPeerInfo.getIp() + ":" + superPeerInfo.getPort() + "/Peer/REST_API/fingerprints");
-				connection = (HttpURLConnection) url.openConnection();
-				connection.setRequestMethod("PUT");
-				connection.setRequestProperty("Content-Type", "application/xml");
-				connection.setRequestProperty("Accept", "application/xml");
+        PeerInfo largestPeer = this.peerInfo;
+        // get peer with largest ID from map
+        for (PeerInfo info : peerRing.keySet()) {
+            if (largestPeer.getPeerID().compareTo(info.getPeerID()) < 0) {
+                largestPeer = info;
+            }
+        }
 
-				OutputStream os = connection.getOutputStream();
-				JAXBContext jaxbContext = JAXBContext.newInstance(PeerFingerprintInformation.class);
-				PeerFingerprintInformation fingerprintInformation = new PeerFingerprintInformation();
-				fingerprintInformation.setFingerprints(this.fingerprintExtractorAndManager.getKnownFingerprints());
-				jaxbContext.createMarshaller().marshal(fingerprintInformation, os);
-				os.flush();
-				os.close();
+        // updating superPeer
+        {
+            peerInfo.setSuperPeerID(largestPeer.getPeerID());
+            peerInfo.setSuperPeerPort(largestPeer.getPort());
+            peerInfo.setSuperPeerIp(largestPeer.getIp());
+        }
+        
+        //TODO: notify Server that I am superPeer
 
-				InputStream errorStream = connection.getErrorStream();
-				if (errorStream != null) {
-					BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
-					String line;
-					while ((line = reader.readLine()) != null) {
-						Logger.getLogger(PeerManager.class.getName()).log(Level.ERROR, line);
-					}
-				}
+        // if I am superPeer, start behavior for sending heartbeat with my Info
+        if (peerInfo.getSuperPeerID().equals(peerInfo.getPeerID())) {
+            Timer heartbeatTimer = new Timer();
+            // schedule at 1.5 seconds
+            heartbeatTimer.schedule(broadcastSuperPeerInfoHeartbeat, 0, 1500);
+        } else {
+            // else send its fingerprints to SuperPeer by joining ring
+            joinPeerNetwork();
 
-				InputStream inputStream = connection.getInputStream();
-				if (inputStream != null) {
-					BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-					String line;
-					while ((line = reader.readLine()) != null) {
-						Logger.getLogger(PeerManager.class.getName()).log(Level.ERROR, line);
-					}
-				}
-				if (connection != null) {
-					connection.disconnect();
-				}
-			} catch (Exception e) {
-				Logger.getLogger(PeerManager.class.getName()).log(Level.ERROR, e);
-			}
-		} else {
-			Logger.getLogger(this.getClass()).log(Level.ERROR,
-					"SuperPeer " + superPeerInfo.getIp() + ":" + superPeerInfo.getPort() + " is not responding. Unable to register");
-		}
+        }
+    }
 
-	}
+    /**
+     * Used to update the fingerprint information about the other peers in the
+     * ring
+     */
+    @Override
+    public void updateRingInformation(PeerRingInformation peerRingInformation) {
+        PeerInfo superPeerInfo = peerRingInformation.getSuperPeerInfo();
+        // updating superPeer
+        {
+            peerInfo.setSuperPeerID(superPeerInfo.getPeerID());
+            peerInfo.setSuperPeerPort(superPeerInfo.getPort());
+            peerInfo.setSuperPeerIp(superPeerInfo.getIp());
+        }
 
-	@Override
-	public void performLeaderElection() {
-		// test which Peer is alive. And the Peer with largest ID is compared to
-		// this, and the largest ID wins
+        latestSuperPeerRefreshMade = new Date();
 
-		// refresh ring by checking who is still alive
-		List<Thread> ringRefreshThreads = new ArrayList<Thread>();
-		for (final PeerInfo info : peerRing.keySet()) {
-			Thread thread = new Thread() {
-				public void run() {
-					// check if Peer is alive (if port is not closed)
-					boolean isAlive = NetworkUtil.checkIfPortOpen(info.getIp(), info.getPort());
-					if (!isAlive) {
-						peerRing.remove(info);
-					}
-				}
-			};
-			ringRefreshThreads.add(thread);
-		}
-		// start threads
-		for (Thread t : ringRefreshThreads) {
-			t.setDaemon(true);
-			t.start();
-		}
-		// wait for threads to finish
-		for (Thread t : ringRefreshThreads) {
-			try {
-				t.join();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				Logger.getLogger(PeerManager.class.getName()).log(Level.ERROR, e);
-			}
-		}
+        // as this is not super peer, it does not store the fingerprints for now
+        for (PeerInfo info : peerRingInformation.getPeerRing()) {
+            peerRing.put(info, new ArrayList<Fingerprint>());
+        }
+    }
 
-		PeerInfo largestPeer = this.peerInfo;
-		// get peer with largest ID from map
-		for (PeerInfo info : peerRing.keySet()) {
-			if (largestPeer.getPeerID().compareTo(info.getPeerID()) < 0) {
-				largestPeer = info;
-			}
-		}
+    @Override
+    public void broadcastSuperPeerInfoHeartBeat() {
+        final PeerRingInformation peerRingInformation = new PeerRingInformation();
+        peerRingInformation.setSuperPeerInfo(peerInfo);
+        peerRingInformation.addPeerRing(peerRing.keySet());
 
-		// updating superPeer
-		superPeerInfo = largestPeer;
+        List<Thread> sendSuperPeerHeartbeatThreads = new ArrayList<Thread>();
+        for (final PeerInfo info : peerRing.keySet()) {
+            Thread thread = new Thread() {
+                public void run() {
 
-		// if I am superPeer, start behavior for sending heartbeat with my Info
-		if (superPeerInfo.getPeerID().equals(peerInfo.getPeerID())) {
-			Timer heartbeatTimer = new Timer();
-			// schedule at 1.5 seconds
-			heartbeatTimer.schedule(broadcastSuperPeerInfoHeartbeat, 0, 1500);
-		} else {
-			// else send its fingerprints to SuperPeer by joining ring
-			joinPeerNetwork();
-			
-		}
-	}
+                    // call Peer RESTful API
+                    URL url = null;
+                    HttpURLConnection connection = null;
+                    try {
+                        Logger.getLogger(PeerManager.class).log(Level.INFO, "Sending super-peer heartbeat to " + info.getIp() + ":" + info.getPort());
+                        url = new URL("http://" + info.getIp() + ":" + info.getPort() + "/Peer/REST_API/updateRingInformation");
+                        connection = (HttpURLConnection) url.openConnection();
+                        connection.setDoOutput(true);
+                        connection.setInstanceFollowRedirects(false);
+                        connection.setRequestMethod("PUT");
+                        connection.setRequestProperty("Content-Type", "application/xml");
 
-	/**
-	 * Used to update the fingerprint information about the other peers in the
-	 * ring
-	 */
-	@Override
-	public void updateRingInformation(PeerRingInformation peerRingInformation) {
-		superPeerInfo = peerRingInformation.getSuperPeerInfo();
-		latestSuperPeerRefreshMade = new Date();
+                        // write message body
+                        OutputStream os = connection.getOutputStream();
+                        JAXBContext jaxbContext = JAXBContext.newInstance(PeerRingInformation.class);
+                        jaxbContext.createMarshaller().marshal(peerRingInformation, os);
+                        os.flush();
+                        os.close();
 
-		// as this is not super peer, it does not store the fingerprints for now
-		for (PeerInfo info : peerRingInformation.getPeerRing()) {
-			peerRing.put(info, new ArrayList<Fingerprint>());
-		}
-	}
+                        InputStream errorStream = connection.getErrorStream();
+                        if (errorStream != null) {
+                            BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
+                            String line;
+                            while ((line = reader.readLine()) != null) {
+                                Logger.getLogger(PeerManager.class).log(Level.ERROR, line);
+                            }
+                        }
 
-	@Override
-	public void broadcastSuperPeerInfoHeartBeat() {
-		final PeerRingInformation peerRingInformation = new PeerRingInformation();
-		peerRingInformation.setSuperPeerInfo(peerInfo);
-		peerRingInformation.addPeerRing(peerRing.keySet());
+                        InputStream inputStream = connection.getInputStream();
+                        if (inputStream != null) {
+                            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+                            String line;
+                            while ((line = reader.readLine()) != null) {
+                                Logger.getLogger(PeerManager.class).log(Level.ERROR, line);
+                            }
+                        }
+                    } catch (Exception e) {
+                        Logger.getLogger(PeerManager.class).log(Level.ERROR, e);
+                    }
+                }
+            };
+            sendSuperPeerHeartbeatThreads.add(thread);
+        }
+        // start threads
+        for (Thread t : sendSuperPeerHeartbeatThreads) {
+            t.setDaemon(true);
+            t.start();
+        }
 
-		List<Thread> sendSuperPeerHeartbeatThreads = new ArrayList<Thread>();
-		for (final PeerInfo info : peerRing.keySet()) {
-			Thread thread = new Thread() {
-				public void run() {
+    }
 
-					// call Peer RESTful API
-					URL url = null;
-					HttpURLConnection connection = null;
-					try {
-						Logger.getLogger(PeerManager.class).log(Level.INFO, "Sending super-peer heartbeat to " + info.getIp() + ":" + info.getPort());
-						url = new URL("http://" + info.getIp() + ":" + info.getPort() + "/Peer/REST_API/updateRingInformation");
-						connection = (HttpURLConnection) url.openConnection();
-						connection.setDoOutput(true);
-						connection.setInstanceFollowRedirects(false);
-						connection.setRequestMethod("PUT");
-						connection.setRequestProperty("Content-Type", "application/xml");
+    @Override
+    public void updatePeerInformation(PeerFingerprintInformation fingerprintInformation) {
+        this.peerRing.put(fingerprintInformation.getPeerInfo(), new ArrayList<Fingerprint>(fingerprintInformation.getFingerprints()));
+    }
 
-						// write message body
-						OutputStream os = connection.getOutputStream();
-						JAXBContext jaxbContext = JAXBContext.newInstance(PeerRingInformation.class);
-						jaxbContext.createMarshaller().marshal(peerRingInformation, os);
-						os.flush();
-						os.close();
-
-						InputStream errorStream = connection.getErrorStream();
-						if (errorStream != null) {
-							BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
-							String line;
-							while ((line = reader.readLine()) != null) {
-								Logger.getLogger(PeerManager.class).log(Level.ERROR, line);
-							}
-						}
-
-						InputStream inputStream = connection.getInputStream();
-						if (inputStream != null) {
-							BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-							String line;
-							while ((line = reader.readLine()) != null) {
-								Logger.getLogger(PeerManager.class).log(Level.ERROR, line);
-							}
-						}
-					} catch (Exception e) {
-						Logger.getLogger(PeerManager.class).log(Level.ERROR, e);
-					}
-				}
-			};
-			sendSuperPeerHeartbeatThreads.add(thread);
-		}
-		// start threads
-		for (Thread t : sendSuperPeerHeartbeatThreads) {
-			t.setDaemon(true);
-			t.start();
-		}
-
-	}
-
-	@Override
-	public void updatePeerInformation(PeerFingerprintInformation fingerprintInformation) {
-		this.peerRing.put(fingerprintInformation.getPeerInfo(), new ArrayList<Fingerprint>(fingerprintInformation.getFingerprints()));
-	}
-
-	@Override
-	public PeerInfo getCurrentPeerInformation() {
-		return peerInfo;
-	}
-
+    @Override
+    public PeerInfo getCurrentPeerInformation() {
+        return peerInfo;
+    }
 }

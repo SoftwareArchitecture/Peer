@@ -6,6 +6,7 @@ import at.ac.tuwien.softwarearchitecture.swazam.common.infos.MusicFileInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.fingerprintExtractorAndManager.FingerprintExtractorAndManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.management.IPeerManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.serverCommunication.IServerCommunicationManager;
+import at.ac.tuwien.softwarearchitecture.swazam.peer.util.ConfigurationManagement;
 
 public class MatchingManager implements IMatchingManager {
 
@@ -16,7 +17,7 @@ public class MatchingManager implements IMatchingManager {
 	public MatchingManager(IPeerManager peerManager) {
 		super();
 		this.peerManager = peerManager;
-		fingerprintExtractorAndManager = new FingerprintExtractorAndManager("", peerManager);
+		fingerprintExtractorAndManager = new FingerprintExtractorAndManager(ConfigurationManagement.getMusicRepositoryPath(), peerManager);
 	}
 
 	/**

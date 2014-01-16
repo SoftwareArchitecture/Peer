@@ -22,4 +22,6 @@ public interface IServerCommunicationManager {
     
 	public void notifyAboutSearchResult(ClientInfo clientInfo, PeerInfo peerInfo, MusicFileInfo result);
 	
+	public void notifyServerIAmSuperPeer(PeerInfo peerInfo);
+	
 }

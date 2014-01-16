@@ -11,111 +11,112 @@ import at.ac.tuwien.softwarearchitecture.swazam.common.infos.ClientInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.PeerInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.ServerInfo;
 
-
 public class ConfigurationManagement {
 
-	private ConfigurationManagement() {
-	}
+    private ConfigurationManagement() {
+    }
 
-	/**
-	 * 
-	 * @return information about the Client attached to this Peer. Used in the query billing process for adding/removing coins to Client by the server.
-	 * Also used to identify a request/response (as they are asynyhcronous)
-	 */
-	public static ClientInfo loadClientInfo() {
-		ClientInfo clientInfo = null;
-		try {
-			InputStream inputStream = new FileInputStream("./config/ClientInfo.xml");
+    /**
+     *
+     * @return information about the Client attached to this Peer. Used in the
+     * query billing process for adding/removing coins to Client by the server.
+     * Also used to identify a request/response (as they are asynyhcronous)
+     */
+    public static ClientInfo loadClientInfo() {
+        ClientInfo clientInfo = null;
+        try {
+            InputStream inputStream = new FileInputStream("./config/ClientInfo.xml");
 
-			if (inputStream != null) {
-				 JAXBContext context = JAXBContext.newInstance(ClientInfo.class);
-				 Unmarshaller unmarshaller = context.createUnmarshaller();
-				 clientInfo = (ClientInfo) unmarshaller.unmarshal(inputStream);
-			}
+            if (inputStream != null) {
+                JAXBContext context = JAXBContext.newInstance(ClientInfo.class);
+                Unmarshaller unmarshaller = context.createUnmarshaller();
+                clientInfo = (ClientInfo) unmarshaller.unmarshal(inputStream);
+            }
 
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}finally{
-			return clientInfo;
-		}
-	}
-	
-	/**
-	 * 
-	 * @return IP and Port of the web services exposed by the Server. Used in registering to the server
-	 */
-	public static ServerInfo loadServerInfo() {
-		ServerInfo serverInfo = null;
-		try {
-			InputStream inputStream = new FileInputStream("./config/ServerInfo.xml");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            return clientInfo;
+        }
+    }
 
-			if (inputStream != null) {
-				 JAXBContext context = JAXBContext.newInstance(ServerInfo.class);
-				 Unmarshaller unmarshaller = context.createUnmarshaller();
-				 serverInfo = (ServerInfo) unmarshaller.unmarshal(inputStream);
-			}
+    /**
+     *
+     * @return IP and Port of the web services exposed by the Server. Used in
+     * registering to the server
+     */
+    public static ServerInfo loadServerInfo() {
+        ServerInfo serverInfo = null;
+        try {
+            InputStream inputStream = new FileInputStream("./config/ServerInfo.xml");
 
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}finally{
-			return serverInfo;
-		}
-	}
+            if (inputStream != null) {
+                JAXBContext context = JAXBContext.newInstance(ServerInfo.class);
+                Unmarshaller unmarshaller = context.createUnmarshaller();
+                serverInfo = (ServerInfo) unmarshaller.unmarshal(inputStream);
+            }
 
-	/**
-	 * 
-	 * @return peer port, IP and ID, which are sent to the Server when registering, and to other Peer entities
-	 */
-	public static PeerInfo loadPeerInfo() {
-		PeerInfo peerInfo = null;
-		try {
-			InputStream inputStream = new FileInputStream("./config/PeerInfo.xml");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            return serverInfo;
+        }
+    }
 
-			if (inputStream != null) {
-				 JAXBContext context = JAXBContext.newInstance(PeerInfo.class);
-				 Unmarshaller unmarshaller = context.createUnmarshaller();
-				 peerInfo = (PeerInfo) unmarshaller.unmarshal(inputStream);
-			}
+    /**
+     *
+     * @return peer port, IP and ID, which are sent to the Server when
+     * registering, and to other Peer entities
+     */
+    public static PeerInfo loadPeerInfo() {
+        PeerInfo peerInfo = null;
+        try {
+            InputStream inputStream = new FileInputStream("./config/PeerInfo.xml");
 
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}finally{
-			return peerInfo;
-		}
-	}
-	
-	/**
-	 * 
-	 * @return peer port, IP and ID, which are sent to the Server when registering, and to other Peer entities
-	 */
-	public static InputStream getLog4JConfig() {
-		InputStream inputStream= null;
-		try {
-			 inputStream = new FileInputStream("./config/Log4j.properties");
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}finally{
-			return inputStream;
-		}
-	}
-	
-	public static String getMusicRepositoryPath(){
-		String path = "";
-		InputStream inputStream= null;
-		try {
-			 inputStream = new FileInputStream("./config/Config.properties");
-			 Properties p = new Properties();
-			 p.load(inputStream);
-			 
-			 if (p.containsKey("musicRepository")){
-				 path= p.getProperty("musicRepository");
-			 }  
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		} finally{
-			return path;
-		}
-	}
-	
-	
+            if (inputStream != null) {
+                JAXBContext context = JAXBContext.newInstance(PeerInfo.class);
+                Unmarshaller unmarshaller = context.createUnmarshaller();
+                peerInfo = (PeerInfo) unmarshaller.unmarshal(inputStream);
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            return peerInfo;
+        }
+    }
+
+    /**
+     *
+     * @return peer port, IP and ID, which are sent to the Server when
+     * registering, and to other Peer entities
+     */
+    public static InputStream getLog4JConfig() {
+        InputStream inputStream = null;
+        try {
+            inputStream = new FileInputStream("./config/Log4j.properties");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            return inputStream;
+        }
+    }
+
+    public static String getMusicRepositoryPath() {
+        String path = "";
+        InputStream inputStream = null;
+        try {
+            inputStream = new FileInputStream("./config/Config.properties");
+            Properties p = new Properties();
+            p.load(inputStream);
+
+            if (p.containsKey("musicRepository")) {
+                path = p.getProperty("musicRepository");
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            return path;
+        }
+    }
 }
