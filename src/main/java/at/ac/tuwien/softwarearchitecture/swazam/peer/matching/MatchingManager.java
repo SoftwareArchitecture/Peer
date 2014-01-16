@@ -6,21 +6,20 @@ import org.apache.log4j.Logger;
 import ac.at.tuwien.infosys.swa.audio.Fingerprint;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.ClientInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.MusicFileInfo;
-import at.ac.tuwien.softwarearchitecture.swazam.peer.fingerprintExtractorAndManager.FingerprintExtractorAndManager;
+import at.ac.tuwien.softwarearchitecture.swazam.peer.fingerprintExtractorAndManager.IFingerprintExtractorAndManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.management.IPeerManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.serverCommunication.IServerCommunicationManager;
-import at.ac.tuwien.softwarearchitecture.swazam.peer.util.ConfigurationManagement;
 
 public class MatchingManager implements IMatchingManager {
 
-	private FingerprintExtractorAndManager fingerprintExtractorAndManager;
+	private IFingerprintExtractorAndManager fingerprintExtractorAndManager;
 	private IPeerManager peerManager;
 	private IServerCommunicationManager communicationManager;
 	
-	public MatchingManager(IPeerManager peerManager) {
+	public MatchingManager(IPeerManager peerManager, IFingerprintExtractorAndManager fingerprintExtractorAndManager) {
 		super();
 		this.peerManager = peerManager;
-		fingerprintExtractorAndManager = new FingerprintExtractorAndManager(ConfigurationManagement.getMusicRepositoryPath(), peerManager);
+		this.fingerprintExtractorAndManager = fingerprintExtractorAndManager;
 	}
 
 	/**
@@ -37,6 +36,7 @@ public class MatchingManager implements IMatchingManager {
 		Thread searchThread = new Thread() {
 
 			public void run() {
+				
 				MusicFileInfo fileInfo = fingerprintExtractorAndManager.evaluateFingerprint(fingerprint);
 
 				// if not found, and if seed, broadcast request to other peers

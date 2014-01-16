@@ -6,6 +6,7 @@ import java.util.Date;
 
 import org.apache.log4j.PropertyConfigurator;
 
+import at.ac.tuwien.softwarearchitecture.swazam.peer.fingerprintExtractorAndManager.FingerprintExtractorAndManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.management.IPeerManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.management.PeerManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.matching.IMatchingManager;
@@ -50,7 +51,7 @@ public class PeerControl {
 				ex.printStackTrace();
 			}
 		}
-		
+
 		instance = new PeerControl();
 
 	}
@@ -72,14 +73,17 @@ public class PeerControl {
 		// instantiate all objects and their dependencies
 		// bad practice. instantiation sequence is crucial here
 		communicationManager = new ServerCommunicationManager();
-		peerManager = new PeerManager(communicationManager);
+		FingerprintExtractorAndManager fingerprintExtractorAndManager = new FingerprintExtractorAndManager(ConfigurationManagement.getMusicRepositoryPath(),
+				peerManager);
+
+		peerManager = new PeerManager(communicationManager, fingerprintExtractorAndManager);
 
 		// currently, to respect the sequence diagram
 		// when the MatchingManager is instantiated, it instantiates a
 		// FingerprintExtractorAndManager which uses the PeerManager to notify
 		// the server using the ServerCommunicationManager
 		// that a new peer has appeared
-		matchingManager = new MatchingManager(peerManager);
+		matchingManager = new MatchingManager(peerManager, fingerprintExtractorAndManager);
 
 		communicationManager.setMatchingManager(matchingManager);
 

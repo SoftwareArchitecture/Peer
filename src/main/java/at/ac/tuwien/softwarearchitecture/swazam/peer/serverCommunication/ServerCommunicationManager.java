@@ -60,7 +60,7 @@ public class ServerCommunicationManager implements IServerCommunicationManager {
         HttpURLConnection connection = null;
         PeerInfo superPeerInfo = null;
         try {
-            url = new URL("http://" + serverInfo.getIp() + ":" + serverInfo.getPort() + "/Server/webapi/peermanagement/registerpeer");
+            url = new URL("http://" + serverInfo.getIp() + ":" + serverInfo.getPort() + "/SWazam/webapi/peermanagement/registerpeer");
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/xml");
@@ -112,7 +112,7 @@ public class ServerCommunicationManager implements IServerCommunicationManager {
                 URL url = null;
                 HttpURLConnection connection = null;
                 try {
-                    url = new URL("http://" + serverInfo.getIp() + ":" + serverInfo.getPort() + "/Server/webapi/peermanagement/searchresult");
+                    url = new URL("http://" + serverInfo.getIp() + ":" + serverInfo.getPort() + "/SWazam/webapi/peermanagement/searchresult");
                     connection = (HttpURLConnection) url.openConnection();
                     connection.setRequestMethod("POST");
                     connection.setRequestProperty("Content-Type", "application/xml");
@@ -124,8 +124,6 @@ public class ServerCommunicationManager implements IServerCommunicationManager {
                     jaxbContext.createMarshaller().marshal(response, os);
                     os.flush();
                     os.close();
-                    
-                   
                     
                     InputStream errorStream = connection.getErrorStream();
                     if (errorStream != null) {
@@ -163,7 +161,7 @@ public class ServerCommunicationManager implements IServerCommunicationManager {
         URL url = null;
         HttpURLConnection connection = null;
         try {
-            url = new URL("http://" + serverInfo.getIp() + ":" + serverInfo.getPort() + "/Server/webapi/peermanagement/updateSuperPeer");
+            url = new URL("http://" + serverInfo.getIp() + ":" + serverInfo.getPort() + "/SWazam/webapi/peermanagement/updatepeer");
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/xml");

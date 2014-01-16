@@ -12,6 +12,7 @@ public interface IMatchingManager {
 	 */
 
 	public void matchFile(ClientInfo clientInfo, Fingerprint fingerprint);
+	
 	// to be customized according to need
 	/**
 	 * To be used in asynchronous connector between the PeerManagement and
