@@ -93,6 +93,7 @@ public class FingerprintExtractorAndManager implements IFingerprintExtractorAndM
             try {
                 // System.out.println("Trying to get fingerprint for " +
                 // audioInputStream.getValue());
+            	Logger.getLogger(this.getClass()).log(Level.INFO, "Loaded music file " + audioInputStream.getValue());
                 knownFingerprints.put(FingerprintSystem.fingerprint(audioInputStream.getKey()), audioInputStream.getValue());
                 audioInputStream.getKey().close();
             } catch (IOException e) {

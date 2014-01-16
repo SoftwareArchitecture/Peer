@@ -1,5 +1,8 @@
 package at.ac.tuwien.softwarearchitecture.swazam.peer.matching;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 import ac.at.tuwien.infosys.swa.audio.Fingerprint;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.ClientInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.MusicFileInfo;
@@ -39,8 +42,10 @@ public class MatchingManager implements IMatchingManager {
 				// if not found, and if seed, broadcast request to other peers
 				// in ring
 				if (!fileInfo.isEmpty()) {
+					Logger.getLogger(MatchingManager.class).log(Level.INFO, "Search request for Client " + clientInfo.getUsername() + " and sessionkey " + clientInfo.getSessionKey() + " successfull. Notifying Server");
 					communicationManager.notifyAboutSearchResult(clientInfo, peerManager.getCurrentPeerInformation(), fileInfo);
 				} else {
+					Logger.getLogger(MatchingManager.class).log(Level.INFO, "Search request for Client " + clientInfo.getUsername() + " and sessionkey " + clientInfo.getSessionKey() + " will be forward to sub-peer circle (if any)");
 					peerManager.forwardSearchRequest(clientInfo, fingerprint);
 				}
 

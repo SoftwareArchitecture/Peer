@@ -106,6 +106,7 @@ public class ServerCommunicationManager implements IServerCommunicationManager {
     public void notifyAboutSearchResult(ClientInfo clientInfo, PeerInfo peerInfo, MusicFileInfo musicFileInfo) {
         Logger.getLogger(ServerCommunicationManager.class).log(Level.INFO, "Found result " + musicFileInfo.getDescription() + " for client " + clientInfo.getClientID());
         final FingerprintSearchResponse response = new FingerprintSearchResponse(clientInfo, peerInfo, musicFileInfo);
+        Logger.getLogger(ServerCommunicationManager.class).log(Level.INFO, "Responding to server that we found result for peer with ID " + peerInfo.getPeerID() );
         Thread thread = new Thread() {
             public void run() {
                 URL url = null;
@@ -119,11 +120,13 @@ public class ServerCommunicationManager implements IServerCommunicationManager {
                     connection.setDoOutput(true);
 
                     OutputStream os = connection.getOutputStream();
-                    JAXBContext jaxbContext = JAXBContext.newInstance(PeerInfo.class);
+                    JAXBContext jaxbContext = JAXBContext.newInstance(FingerprintSearchResponse.class);
                     jaxbContext.createMarshaller().marshal(response, os);
                     os.flush();
                     os.close();
-
+                    
+                   
+                    
                     InputStream errorStream = connection.getErrorStream();
                     if (errorStream != null) {
                         BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
