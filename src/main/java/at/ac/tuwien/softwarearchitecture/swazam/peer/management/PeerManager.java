@@ -275,6 +275,9 @@ public class PeerManager implements IPeerManager {
 
 		// if I am superPeer, start behavior for sending heartbeat with my Info
 		if (peerInfo.getSuperPeerID().equals(peerInfo.getPeerID())) {
+			if(checkForSuperPeerRefreshRate != null){
+				checkForSuperPeerRefreshRate.cancel();
+			}
 			Timer heartbeatTimer = new Timer();
 			// schedule at 1.5 seconds
 			heartbeatTimer.schedule(broadcastSuperPeerInfoHeartbeat(), 0, 1500);
@@ -406,6 +409,9 @@ public class PeerManager implements IPeerManager {
 		// if I am superPeer, start behavior for sending heartbeat with my Info
 		if (peerInfo.getSuperPeerID().equals(peerInfo.getPeerID())) {
 			Timer heartbeatTimer = new Timer();
+			if(checkAlivePeriodSuperPeer!= null){
+				checkAlivePeriodSuperPeer.cancel();
+			}
 			// schedule at 1.5 seconds
 			Logger.getLogger(PeerManager.class).log(Level.INFO, "I am super peer ");
 			heartbeatTimer.schedule(broadcastSuperPeerInfoHeartbeat(), 0, 1500);
@@ -447,6 +453,11 @@ public class PeerManager implements IPeerManager {
 
 		List<Thread> sendSuperPeerHeartbeatThreads = new ArrayList<Thread>();
 		for (final PeerInfo info : peerRing.keySet()) {
+			
+			if(info.getPeerID().equals(peerInfo.getPeerID())){
+				continue;
+			}
+			
 			Thread thread = new Thread() {
 				public void run() {
 
