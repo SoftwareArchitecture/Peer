@@ -403,8 +403,7 @@ public class PeerManager implements IPeerManager {
 			peerInfo.setSuperPeerPort(largestPeer.getPort());
 			peerInfo.setSuperPeerIp(largestPeer.getIp());
 		}
-
-		// TODO: notify Server that I am superPeer
+ 
 
 		// if I am superPeer, start behavior for sending heartbeat with my Info
 		if (peerInfo.getSuperPeerID().equals(peerInfo.getPeerID())) {
@@ -412,8 +411,10 @@ public class PeerManager implements IPeerManager {
 			if(checkAlivePeriodSuperPeer!= null){
 				checkAlivePeriodSuperPeer.cancel();
 			}
-			// schedule at 1.5 seconds
+			
 			Logger.getLogger(PeerManager.class).log(Level.INFO, "I am super peer ");
+			serverCommunicationManager.notifyServerIAmSuperPeer(peerInfo);
+			// schedule at 1.5 seconds
 			heartbeatTimer.schedule(broadcastSuperPeerInfoHeartbeat(), 0, 1500);
 		} else {
 			// else send its fingerprints to SuperPeer by joining ring
