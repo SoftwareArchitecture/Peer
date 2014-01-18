@@ -16,12 +16,13 @@ import at.ac.tuwien.softwarearchitecture.swazam.common.infos.MusicFileInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.management.IPeerManager;
 
 public interface IFingerprintExtractorAndManager {
+	
 	public IPeerManager getPeerManager() ;
 
 	public void setPeerManager(IPeerManager peerManager);
 
-
 	public String printAllFingerprints() ;
+	
 	public void removeFingerprint(Fingerprint fingerprint) ;
 
 	public void removeFingerprint(String fingerprintName) ;
