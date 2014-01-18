@@ -163,7 +163,7 @@ public class ServerCommunicationManager implements IServerCommunicationManager {
         try {
             url = new URL("http://" + serverInfo.getIp() + ":" + serverInfo.getPort() + "/SWazam/webapi/peermanagement/updatepeer");
             connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
+            connection.setRequestMethod("PUT");
             connection.setRequestProperty("Content-Type", "application/xml");
 //            connection.setRequestProperty("Accept", "application/xml");
             connection.setDoOutput(true);
