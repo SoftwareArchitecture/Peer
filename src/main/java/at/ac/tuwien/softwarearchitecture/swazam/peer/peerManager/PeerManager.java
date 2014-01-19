@@ -54,13 +54,13 @@ public class PeerManager implements IPeerManager {
     private IFingerprintExtractorAndManager fingerprintExtractorAndManager;
     private int MAX_IDLE_PERIOD = 20000;
     private Date latestSuperPeerRefreshMade = new Date();
-	// private List<PeerInfo> peerRing;
+    // private List<PeerInfo> peerRing;
     // {
     // peerRing = new ArrayList<PeerInfo>();
     // }
     // info used to bill a client for search/result
     private ClientInfo clientInfo;
-	// information regarding the current Peer
+    // information regarding the current Peer
     // this is ditributed to the Server and other peers and used in connecting
     // to this Peer
     private PeerInfo peerInfo;
@@ -74,22 +74,23 @@ public class PeerManager implements IPeerManager {
         }
     };
 
-    /**
-     * If the current peer is superPeer, it needs to continuously broadcast to
-     * other peers its info
-     */
-    private TimerTask broadcastSuperPeerInfoHeartbeat() {
-
-        TimerTask task = new TimerTask() {
-            public void run() {
-                broadcastSuperPeerInfoHeartBeat();
-            }
-        };
-        return task;
-    }
+//    /**
+//     * If the current peer is superPeer, it needs to continuously broadcast to
+//     * other peers its info
+//     */
+//    private TimerTask broadcastSuperPeerInfoHeartbeat() {
+//
+//        TimerTask task = new TimerTask() {
+//            public void run() {
+//                broadcastSuperPeerInfoHeartBeat();
+//            }
+//        };
+//        return task;
+//    }
+    private Timer heartbeatTimer;
 
     // used to check if super peer sent its info
-    Timer checkForSuperPeerRefreshRate;
+    private Timer checkForSuperPeerRefreshRate;
 
     public PeerManager(ServerCommunicationManager serverCommunicationManager, IFingerprintExtractorAndManager fingerprintExtractorAndManager) {
         super();
@@ -106,8 +107,6 @@ public class PeerManager implements IPeerManager {
     private UUID generatePeerID() {
         return UUID.nameUUIDFromBytes((peerInfo.getIp() + "_" + peerInfo.getPort()).getBytes());
     }
-
-  
 
     public Map<PeerInfo, List<Fingerprint>> getPeerRing() {
         return peerRing;
@@ -140,7 +139,6 @@ public class PeerManager implements IPeerManager {
     public void setPeerInfo(PeerInfo peerInfo) {
         this.peerInfo = peerInfo;
     }
- 
 
     public ClientInfo getClientInfo() {
         return clientInfo;
@@ -186,9 +184,13 @@ public class PeerManager implements IPeerManager {
     public void forwardSearchRequest(ClientInfo clientInfo, Fingerprint fingerprint) {
         // TODO Auto-generated method stub
         if (this.peerInfo.getPeerID().equals(this.peerInfo.getSuperPeerID())) {
-			// broadcast to all other peers in ring the search request.
+            // broadcast to all other peers in ring the search request.
 
             for (Entry<PeerInfo, List<Fingerprint>> entry : peerRing.entrySet()) {
+
+                if (entry.getKey().getPeerID().equals(this.peerInfo.getPeerID())) {
+                    continue;
+                }
 
                 // check if sub-peer contains desired fingerprint
                 List<Fingerprint> peerFingerprints = entry.getValue();
@@ -201,7 +203,7 @@ public class PeerManager implements IPeerManager {
                     }
                 }
 
-				// if sub-peer does not contain the desired fingerprint,
+                // if sub-peer does not contain the desired fingerprint,
                 // continue
                 if (!hasFingeprint) {
                     continue;
@@ -263,15 +265,23 @@ public class PeerManager implements IPeerManager {
         }
 		// broadcast all fingerprints to SuperPeer
 
-		// if I am first in Ring, server will return my info as SuperPeer
+        // if I am first in Ring, server will return my info as SuperPeer
         // if I am superPeer, start behavior for sending heartbeat with my Info
         if (peerInfo.getSuperPeerID().equals(peerInfo.getPeerID())) {
             if (checkForSuperPeerRefreshRate != null) {
                 checkForSuperPeerRefreshRate.cancel();
             }
-            Timer heartbeatTimer = new Timer();
-            // schedule at 1.5 seconds
-            heartbeatTimer.schedule(broadcastSuperPeerInfoHeartbeat(), 0, 1500);
+            if (heartbeatTimer == null) {
+                heartbeatTimer = new Timer();
+                // schedule at 1.5 seconds
+                TimerTask update = new TimerTask() {
+                    public void run() {
+                        broadcastSuperPeerInfoHeartBeat();
+                    }
+                };
+
+                heartbeatTimer.schedule(update, 0, 1500);
+            }
             Logger.getLogger(PeerManager.class).log(Level.INFO, "I am super peer and starting heartbeat");
         } else {
             // else send its fingerprints to SuperPeer by joining ring
@@ -395,15 +405,25 @@ public class PeerManager implements IPeerManager {
 
         // if I am superPeer, start behavior for sending heartbeat with my Info
         if (peerInfo.getSuperPeerID().equals(peerInfo.getPeerID())) {
-            Timer heartbeatTimer = new Timer();
-            if (checkAlivePeriodSuperPeer != null) {
-                checkAlivePeriodSuperPeer.cancel();
+
+            if (checkForSuperPeerRefreshRate != null) {
+                checkForSuperPeerRefreshRate.cancel();
             }
 
             Logger.getLogger(PeerManager.class).log(Level.INFO, "I am super peer ");
+
             serverCommunicationManager.notifyServerIAmSuperPeer(peerInfo);
             // schedule at 1.5 seconds
-            heartbeatTimer.schedule(broadcastSuperPeerInfoHeartbeat(), 0, 1500);
+            if (heartbeatTimer == null) {
+                heartbeatTimer = new Timer();
+                TimerTask update = new TimerTask() {
+                    public void run() {
+                        broadcastSuperPeerInfoHeartBeat();
+                    }
+                };
+                
+                heartbeatTimer.schedule(update, 0, 1500);
+            }
         } else {
             // else send its fingerprints to SuperPeer by joining ring
             Logger.getLogger(PeerManager.class).log(Level.INFO, "I am joining peer network ");
@@ -434,6 +454,7 @@ public class PeerManager implements IPeerManager {
     }
 
     public void broadcastSuperPeerInfoHeartBeat() {
+
         final PeerRingInformation peerRingInformation = new PeerRingInformation();
         peerRingInformation.setSuperPeerInfo(peerInfo);
         peerRingInformation.addPeerRing(peerRing.keySet());
@@ -447,47 +468,49 @@ public class PeerManager implements IPeerManager {
 
             Thread thread = new Thread() {
                 public void run() {
-
+                    boolean isAlive = NetworkUtil.checkIfPortOpen(peerInfo.getSuperPeerIp(), peerInfo.getSuperPeerPort());
+                    if (isAlive) {
 //					Logger.getLogger(PeerManager.class).log(Level.INFO, "Broadcasting Super Peer ID " + peerInfo.getPeerID() + " to " + info.getPeerID());
-                    // call Peer RESTful API
-                    URL url = null;
-                    HttpURLConnection connection = null;
-                    try {
-//						Logger.getLogger(PeerManager.class).log(Level.INFO, "Sending super-peer heartbeat to " + info.getIp() + ":" + info.getPort());
-                        url = new URL("http://" + info.getIp() + ":" + info.getPort() + "/Peer/REST_API/updateRingInformation");
-                        connection = (HttpURLConnection) url.openConnection();
-                        connection.setDoOutput(true);
-                        connection.setInstanceFollowRedirects(false);
-                        connection.setDoOutput(true);
-                        connection.setRequestMethod("PUT");
-                        connection.setRequestProperty("Content-Type", "application/xml");
+                        // call Peer RESTful API
+                        URL url = null;
+                        HttpURLConnection connection = null;
+                        try {
+                            Logger.getLogger(PeerManager.class).log(Level.INFO, "Sending super-peer heartbeat to " + info.getIp() + ":" + info.getPort());
+                            url = new URL("http://" + info.getIp() + ":" + info.getPort() + "/Peer/REST_API/updateRingInformation");
+                            connection = (HttpURLConnection) url.openConnection();
+                            connection.setDoOutput(true);
+                            connection.setInstanceFollowRedirects(false);
+                            connection.setDoOutput(true);
+                            connection.setRequestMethod("PUT");
+                            connection.setRequestProperty("Content-Type", "application/xml");
 
-                        // write message body
-                        OutputStream os = connection.getOutputStream();
-                        JAXBContext jaxbContext = JAXBContext.newInstance(PeerRingInformation.class);
-                        jaxbContext.createMarshaller().marshal(peerRingInformation, os);
-                        os.flush();
-                        os.close();
+                            // write message body
+                            OutputStream os = connection.getOutputStream();
+                            JAXBContext jaxbContext = JAXBContext.newInstance(PeerRingInformation.class);
+                            jaxbContext.createMarshaller().marshal(peerRingInformation, os);
+                            os.flush();
+                            os.close();
 
-                        InputStream errorStream = connection.getErrorStream();
-                        if (errorStream != null) {
-                            BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
-                            String line;
-                            while ((line = reader.readLine()) != null) {
-                                Logger.getLogger(PeerManager.class).log(Level.ERROR, line);
+                            InputStream errorStream = connection.getErrorStream();
+                            if (errorStream != null) {
+                                BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
+                                String line;
+                                while ((line = reader.readLine()) != null) {
+                                    Logger.getLogger(PeerManager.class).log(Level.ERROR, line);
+                                }
                             }
-                        }
 
-                        InputStream inputStream = connection.getInputStream();
-                        if (inputStream != null) {
-                            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-                            String line;
-                            while ((line = reader.readLine()) != null) {
-                                Logger.getLogger(PeerManager.class).log(Level.ERROR, line);
+                            InputStream inputStream = connection.getInputStream();
+                            if (inputStream != null) {
+                                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+                                String line;
+                                while ((line = reader.readLine()) != null) {
+                                    Logger.getLogger(PeerManager.class).log(Level.ERROR, line);
+                                }
                             }
+                        } catch (Exception e) {
+                            Logger.getLogger(PeerManager.class).log(Level.ERROR, e);
                         }
-                    } catch (Exception e) {
-                        Logger.getLogger(PeerManager.class).log(Level.ERROR, e);
                     }
                 }
             };

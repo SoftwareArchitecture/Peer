@@ -22,184 +22,182 @@ import at.ac.tuwien.softwarearchitecture.swazam.peer.matching.IMatchingManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.peerManager.PeerManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.util.ConfigurationManagement;
 
-
-
 public class ServerCommunicationManager implements IServerCommunicationManager {
 
-	// to execute file searches asynchronously
-	private IMatchingManager matchingManager;
-	private ServerInfo serverInfo;
+    // to execute file searches asynchronously
+    private IMatchingManager matchingManager;
+    private ServerInfo serverInfo;
 
-	public ServerCommunicationManager() {
-		super();
-		this.serverInfo = ConfigurationManagement.loadServerInfo();
-	}
+    public ServerCommunicationManager() {
+        super();
+        this.serverInfo = ConfigurationManagement.loadServerInfo();
+    }
 
-	public IMatchingManager getMatchingManager() {
-		return matchingManager;
-	}
+    public IMatchingManager getMatchingManager() {
+        return matchingManager;
+    }
 
-	public void setMatchingManager(IMatchingManager matchingManager) {
-		this.matchingManager = matchingManager;
-	}
+    public void setMatchingManager(IMatchingManager matchingManager) {
+        this.matchingManager = matchingManager;
+    }
 
-	public PeerInfo registerToServer(PeerInfo peerInfo) {
+    public PeerInfo registerToServer(PeerInfo peerInfo) {
 		// PeerInfo p = new PeerInfo();
-		// p.setIp(peerInfo.getIp());
-		// p.setUsername(peerInfo.getUsername());
-		// p.setPassword(peerInfo.getPassword());
-		// p.setPeerID(peerInfo.getPeerID());
-		// p.setPort(peerInfo.getPort());
-		// p.setSuperPeerID(peerInfo.getPeerID());
-		// p.setSuperPeerIp(peerInfo.getIp());
-		// p.setSuperPeerPort(peerInfo.getPort());
-		//
-		// return p;
-		URL url = null;
-		HttpURLConnection connection = null;
-		PeerInfo superPeerInfo = null;
-		try {
-			url = new URL("http://" + serverInfo.getIp() + ":" + serverInfo.getPort() + "/SWazam/webapi/peermanagement/registerpeer");
-			connection = (HttpURLConnection) url.openConnection();
-			connection.setRequestMethod("POST");
-			connection.setRequestProperty("Content-Type", "application/xml");
-			connection.setRequestProperty("Accept", "application/xml");
-			connection.setDoOutput(true);
+        // p.setIp(peerInfo.getIp());
+        // p.setUsername(peerInfo.getUsername());
+        // p.setPassword(peerInfo.getPassword());
+        // p.setPeerID(peerInfo.getPeerID());
+        // p.setPort(peerInfo.getPort());
+        // p.setSuperPeerID(peerInfo.getPeerID());
+        // p.setSuperPeerIp(peerInfo.getIp());
+        // p.setSuperPeerPort(peerInfo.getPort());
+        //
+        // return p;
+        URL url = null;
+        HttpURLConnection connection = null;
+        PeerInfo superPeerInfo = null;
+        try {
+            url = new URL("http://" + serverInfo.getIp() + ":" + serverInfo.getPort() + "/SWazam/webapi/peermanagement/registerpeer");
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/xml");
+            connection.setRequestProperty("Accept", "application/xml");
+            connection.setDoOutput(true);
 
-			OutputStream os = connection.getOutputStream();
-			JAXBContext jaxbContext = JAXBContext.newInstance(PeerInfo.class);
-			jaxbContext.createMarshaller().marshal(peerInfo, os);
-			os.flush();
-			os.close();
+            OutputStream os = connection.getOutputStream();
+            JAXBContext jaxbContext = JAXBContext.newInstance(PeerInfo.class);
+            jaxbContext.createMarshaller().marshal(peerInfo, os);
+            os.flush();
+            os.close();
 
-			InputStream errorStream = connection.getErrorStream();
-			if (errorStream != null) {
-				BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
-				String line;
-				while ((line = reader.readLine()) != null) {
-					Logger.getLogger(ServerCommunicationManager.class.getName()).log(Level.ERROR, line);
-				}
-			}
+            InputStream errorStream = connection.getErrorStream();
+            if (errorStream != null) {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    Logger.getLogger(ServerCommunicationManager.class.getName()).log(Level.ERROR, line);
+                }
+            }
 
-			InputStream inputStream = connection.getInputStream();
-			if (inputStream != null) {
-				superPeerInfo = (PeerInfo) jaxbContext.createUnmarshaller().unmarshal(inputStream);
-			}
-			if (connection != null) {
-				connection.disconnect();
-			}
+            InputStream inputStream = connection.getInputStream();
+            if (inputStream != null) {
+                superPeerInfo = (PeerInfo) jaxbContext.createUnmarshaller().unmarshal(inputStream);
+            }
+            if (connection != null) {
+                connection.disconnect();
+            }
 
-		} catch (Exception e) {
-			Logger.getLogger(ServerCommunicationManager.class.getName()).log(Level.ERROR, e);
-		} finally {
-			return superPeerInfo;
-		}
-	}
+        } catch (Exception e) {
+            Logger.getLogger(ServerCommunicationManager.class.getName()).log(Level.ERROR, e);
+        } finally {
+            return superPeerInfo;
+        }
+    }
 
-	public void matchFile(ClientInfo clientInfo, Fingerprint fingerprintToSearch) {
-		matchingManager.matchFile(clientInfo, fingerprintToSearch);
-	}
+    public void matchFile(ClientInfo clientInfo, Fingerprint fingerprintToSearch) {
+        matchingManager.matchFile(clientInfo, fingerprintToSearch);
+    }
 
-	public void notifyAboutSearchResult(ClientInfo clientInfo, PeerInfo peerInfo, MusicFileInfo musicFileInfo) {
-		Logger.getLogger(ServerCommunicationManager.class).log(Level.INFO,
-				"Found result " + musicFileInfo.getDescription() + " for client " + clientInfo.getClientID());
-		final FingerprintSearchResponse response = new FingerprintSearchResponse(clientInfo, peerInfo, musicFileInfo);
-		Logger.getLogger(ServerCommunicationManager.class)
-				.log(Level.INFO, "Responding to server that we found result for peer with ID " + peerInfo.getPeerID());
-		Thread thread = new Thread() {
-			public void run() {
-				URL url = null;
-				HttpURLConnection connection = null;
-				try {
-					url = new URL("http://" + serverInfo.getIp() + ":" + serverInfo.getPort() + "/SWazam/webapi/peermanagement/searchresult");
-					connection = (HttpURLConnection) url.openConnection();
-					connection.setRequestMethod("POST");
-					connection.setRequestProperty("Content-Type", "application/xml");
-					connection.setRequestProperty("Accept", "application/xml");
-					connection.setDoOutput(true);
+    public void notifyAboutSearchResult(ClientInfo clientInfo, PeerInfo peerInfo, MusicFileInfo musicFileInfo) {
+        Logger.getLogger(ServerCommunicationManager.class).log(Level.INFO,
+                "Found result " + musicFileInfo.getDescription() + " for client " + clientInfo.getClientID());
+        final FingerprintSearchResponse response = new FingerprintSearchResponse(clientInfo, peerInfo, musicFileInfo);
+        Logger.getLogger(ServerCommunicationManager.class)
+                .log(Level.INFO, "Responding to server that we found result for peer with ID " + peerInfo.getPeerID());
+        Thread thread = new Thread() {
+            public void run() {
+                URL url = null;
+                HttpURLConnection connection = null;
+                try {
+                    url = new URL("http://" + serverInfo.getIp() + ":" + serverInfo.getPort() + "/SWazam/webapi/peermanagement/searchresult");
+                    connection = (HttpURLConnection) url.openConnection();
+                    connection.setRequestMethod("POST");
+                    connection.setRequestProperty("Content-Type", "application/xml");
+                    connection.setRequestProperty("Accept", "application/xml");
+                    connection.setDoOutput(true);
 
-					OutputStream os = connection.getOutputStream();
-					JAXBContext jaxbContext = JAXBContext.newInstance(FingerprintSearchResponse.class);
-					jaxbContext.createMarshaller().marshal(response, os);
-					os.flush();
-					os.close();
+                    OutputStream os = connection.getOutputStream();
+                    JAXBContext jaxbContext = JAXBContext.newInstance(FingerprintSearchResponse.class);
+                    jaxbContext.createMarshaller().marshal(response, os);
+                    os.flush();
+                    os.close();
 
-					InputStream errorStream = connection.getErrorStream();
-					if (errorStream != null) {
-						BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
-						String line;
-						while ((line = reader.readLine()) != null) {
-							Logger.getLogger(PeerManager.class.getName()).log(Level.ERROR, line);
-						}
-					}
+                    InputStream errorStream = connection.getErrorStream();
+                    if (errorStream != null) {
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            Logger.getLogger(PeerManager.class.getName()).log(Level.ERROR, line);
+                        }
+                    }
 
-					InputStream inputStream = connection.getInputStream();
-					if (inputStream != null) {
-						BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-						String line;
-						while ((line = reader.readLine()) != null) {
-							Logger.getLogger(ServerCommunicationManager.class.getName()).log(Level.ERROR, line);
-						}
-					}
-					if (connection != null) {
-						connection.disconnect();
-					}
-				} catch (Exception e) {
-					Logger.getLogger(ServerCommunicationManager.class.getName()).log(Level.ERROR, e);
-				}
-			}
-		};
+                    InputStream inputStream = connection.getInputStream();
+                    if (inputStream != null) {
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            Logger.getLogger(ServerCommunicationManager.class.getName()).log(Level.ERROR, line);
+                        }
+                    }
+                    if (connection != null) {
+                        connection.disconnect();
+                    }
+                } catch (Exception e) {
+                    Logger.getLogger(ServerCommunicationManager.class.getName()).log(Level.ERROR, e);
+                }
+            }
+        };
 
-		thread.setDaemon(true);
-		thread.start();
+        thread.setDaemon(true);
+        thread.start();
 
-	}
+    }
 
-	public void notifyServerIAmSuperPeer(PeerInfo peerInfo) {
-		Logger.getLogger(PeerManager.class).log(Level.INFO, "Initiating Server notify");
-		URL url = null;
-		HttpURLConnection connection = null;
-		try {
-			url = new URL("http://" + serverInfo.getIp() + ":" + serverInfo.getPort() + "/SWazam/webapi/peermanagement/updatepeer");
-			connection = (HttpURLConnection) url.openConnection();
-			connection.setRequestMethod("PUT");
-			connection.setRequestProperty("Content-Type", "application/xml");
-			// connection.setRequestProperty("Accept", "application/xml");
-			connection.setDoOutput(true);
+    public void notifyServerIAmSuperPeer(PeerInfo peerInfo) {
+        Logger.getLogger(PeerManager.class).log(Level.INFO, "Initiating Server notify");
+        URL url = null;
+        HttpURLConnection connection = null;
+        try {
+            url = new URL("http://" + serverInfo.getIp() + ":" + serverInfo.getPort() + "/SWazam/webapi/peermanagement/updatepeer");
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("PUT");
+            connection.setRequestProperty("Content-Type", "application/xml");
+            // connection.setRequestProperty("Accept", "application/xml");
+            connection.setDoOutput(true);
 
-			Logger.getLogger(PeerManager.class).log(Level.INFO, "Notifying " + url);
+            Logger.getLogger(PeerManager.class).log(Level.INFO, "Notifying " + url);
 
-			OutputStream os = connection.getOutputStream();
-			JAXBContext jaxbContext = JAXBContext.newInstance(PeerInfo.class);
-			jaxbContext.createMarshaller().marshal(peerInfo, os);
-			Logger.getLogger(PeerManager.class).log(Level.INFO, "Sending " + os.toString());
-			os.flush();
-			os.close();
+            OutputStream os = connection.getOutputStream();
+            JAXBContext jaxbContext = JAXBContext.newInstance(PeerInfo.class);
+            jaxbContext.createMarshaller().marshal(peerInfo, os);
+            Logger.getLogger(PeerManager.class).log(Level.INFO, "Sending " + os.toString());
+            os.flush();
+            os.close();
 
-			{
-				InputStream errorStream = connection.getErrorStream();
-				if (errorStream != null) {
-					BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
-					String line;
-					while ((line = reader.readLine()) != null) {
-						Logger.getLogger(ServerCommunicationManager.class.getName()).log(Level.ERROR, line);
-					}
-				}
-			}
-			{
-				InputStream errorStream = connection.getInputStream();
-				if (errorStream != null) {
-					BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
-					String line;
-					while ((line = reader.readLine()) != null) {
-						Logger.getLogger(ServerCommunicationManager.class.getName()).log(Level.ERROR, line);
-					}
-				}
-			}
+            {
+                InputStream errorStream = connection.getErrorStream();
+                if (errorStream != null) {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        Logger.getLogger(ServerCommunicationManager.class.getName()).log(Level.ERROR, line);
+                    }
+                }
+            }
+            {
+                InputStream errorStream = connection.getInputStream();
+                if (errorStream != null) {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        Logger.getLogger(ServerCommunicationManager.class.getName()).log(Level.ERROR, line);
+                    }
+                }
+            }
 
-		} catch (Exception e) {
-			Logger.getLogger(ServerCommunicationManager.class.getName()).log(Level.ERROR, e);
-		}
+        } catch (Exception e) {
+            Logger.getLogger(ServerCommunicationManager.class.getName()).log(Level.ERROR, e);
+        }
 
-	}
+    }
 }
