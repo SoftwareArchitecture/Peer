@@ -43,7 +43,7 @@ public class PeerWSAPI {
     @Path("/updateRingInformation")
     @Consumes(MediaType.APPLICATION_XML)
     public void updateRingInformation(PeerRingInformation peerRingInformation) {
-//        Logger.getLogger(PeerWSAPI.class).log(Level.WARN, "Updated super peer ID: " + peerRingInformation.getSuperPeerInfo().getPeerID());
+       
         peerControl.getPeerManager().updateRingInformation(peerRingInformation);
     }
     
@@ -61,7 +61,7 @@ public class PeerWSAPI {
     @Path("/fingerprints")
     @Consumes(MediaType.APPLICATION_XML)
     public void addFingerprints(PeerFingerprintInformation peerFingerprintInformation) {
-        Logger.getLogger(PeerWSAPI.class).log(Level.WARN, "Adding fingeprints from peer: " + peerFingerprintInformation.getPeerInfo().getIp());
+        Logger.getLogger(PeerWSAPI.class).log(Level.WARN, "Adding fingeprints from peer: " + peerFingerprintInformation.getPeerInfo().getPort() + " size " + peerFingerprintInformation.getFingerprints().size());
         peerControl.getPeerManager().distributeFingerprintsToSuperpeer(peerFingerprintInformation);
     }
     
