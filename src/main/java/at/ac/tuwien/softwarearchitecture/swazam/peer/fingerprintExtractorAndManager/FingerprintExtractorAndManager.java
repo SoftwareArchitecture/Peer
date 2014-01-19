@@ -19,7 +19,7 @@ import at.ac.tuwien.softwarearchitecture.swazam.common.infos.MusicFileInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.audioManager.IAudioManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.audioManager.RepositoryAccess;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.audioManager.RepositoryObserver;
-import at.ac.tuwien.softwarearchitecture.swazam.peer.management.IPeerManager;
+import at.ac.tuwien.softwarearchitecture.swazam.peer.peerManager.IPeerManager;
 
 public class FingerprintExtractorAndManager implements IFingerprintExtractorAndManager {
 

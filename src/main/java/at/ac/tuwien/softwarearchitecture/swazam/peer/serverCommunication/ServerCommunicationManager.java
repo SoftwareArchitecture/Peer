@@ -20,8 +20,8 @@ import at.ac.tuwien.softwarearchitecture.swazam.common.infos.FingerprintSearchRe
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.MusicFileInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.PeerInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.ServerInfo;
-import at.ac.tuwien.softwarearchitecture.swazam.peer.management.PeerManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.matching.IMatchingManager;
+import at.ac.tuwien.softwarearchitecture.swazam.peer.peerManager.PeerManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.util.ConfigurationManagement;
 
 public class ServerCommunicationManager implements IServerCommunicationManager {

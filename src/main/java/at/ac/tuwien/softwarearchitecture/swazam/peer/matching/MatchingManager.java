@@ -7,7 +7,7 @@ import ac.at.tuwien.infosys.swa.audio.Fingerprint;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.ClientInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.MusicFileInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.fingerprintExtractorAndManager.IFingerprintExtractorAndManager;
-import at.ac.tuwien.softwarearchitecture.swazam.peer.management.IPeerManager;
+import at.ac.tuwien.softwarearchitecture.swazam.peer.peerManager.IPeerManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.serverCommunication.IServerCommunicationManager;
 
 public class MatchingManager implements IMatchingManager {

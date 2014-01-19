@@ -13,7 +13,7 @@ import org.apache.log4j.Logger;
 import ac.at.tuwien.infosys.swa.audio.Fingerprint;
 import ac.at.tuwien.infosys.swa.audio.FingerprintSystem;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.MusicFileInfo;
-import at.ac.tuwien.softwarearchitecture.swazam.peer.management.IPeerManager;
+import at.ac.tuwien.softwarearchitecture.swazam.peer.peerManager.IPeerManager;
 
 public interface IFingerprintExtractorAndManager {
 	

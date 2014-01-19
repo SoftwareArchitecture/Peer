@@ -7,10 +7,10 @@ import java.util.Date;
 import org.apache.log4j.PropertyConfigurator;
 
 import at.ac.tuwien.softwarearchitecture.swazam.peer.fingerprintExtractorAndManager.FingerprintExtractorAndManager;
-import at.ac.tuwien.softwarearchitecture.swazam.peer.management.IPeerManager;
-import at.ac.tuwien.softwarearchitecture.swazam.peer.management.PeerManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.matching.IMatchingManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.matching.MatchingManager;
+import at.ac.tuwien.softwarearchitecture.swazam.peer.peerManager.IPeerManager;
+import at.ac.tuwien.softwarearchitecture.swazam.peer.peerManager.PeerManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.serverCommunication.IServerCommunicationManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.serverCommunication.ServerCommunicationManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.util.ConfigurationManagement;
