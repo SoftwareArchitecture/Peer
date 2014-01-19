@@ -6,7 +6,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Collection;
 
 import javax.xml.bind.JAXBContext;
 
@@ -15,7 +14,6 @@ import org.apache.log4j.Logger;
 
 import ac.at.tuwien.infosys.swa.audio.Fingerprint;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.ClientInfo;
-import at.ac.tuwien.softwarearchitecture.swazam.common.infos.FingerprintSearchRequest;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.FingerprintSearchResponse;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.MusicFileInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.PeerInfo;
@@ -23,6 +21,8 @@ import at.ac.tuwien.softwarearchitecture.swazam.common.infos.ServerInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.matching.IMatchingManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.peerManager.PeerManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.util.ConfigurationManagement;
+
+
 
 public class ServerCommunicationManager implements IServerCommunicationManager {
 
@@ -43,7 +43,6 @@ public class ServerCommunicationManager implements IServerCommunicationManager {
 		this.matchingManager = matchingManager;
 	}
 
-	@Override
 	public PeerInfo registerToServer(PeerInfo peerInfo) {
 		// PeerInfo p = new PeerInfo();
 		// p.setIp(peerInfo.getIp());
@@ -97,12 +96,10 @@ public class ServerCommunicationManager implements IServerCommunicationManager {
 		}
 	}
 
-	@Override
 	public void matchFile(ClientInfo clientInfo, Fingerprint fingerprintToSearch) {
 		matchingManager.matchFile(clientInfo, fingerprintToSearch);
 	}
 
-	@Override
 	public void notifyAboutSearchResult(ClientInfo clientInfo, PeerInfo peerInfo, MusicFileInfo musicFileInfo) {
 		Logger.getLogger(ServerCommunicationManager.class).log(Level.INFO,
 				"Found result " + musicFileInfo.getDescription() + " for client " + clientInfo.getClientID());
@@ -158,7 +155,6 @@ public class ServerCommunicationManager implements IServerCommunicationManager {
 
 	}
 
-	@Override
 	public void notifyServerIAmSuperPeer(PeerInfo peerInfo) {
 		Logger.getLogger(PeerManager.class).log(Level.INFO, "Initiating Server notify");
 		URL url = null;

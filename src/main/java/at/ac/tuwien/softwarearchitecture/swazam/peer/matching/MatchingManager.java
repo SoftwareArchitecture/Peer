@@ -29,7 +29,6 @@ public class MatchingManager implements IMatchingManager {
 	 * @param peerManager
 	 * @param fingerprint
 	 */
-	@Override
 	public void matchFile(final ClientInfo clientInfo, final Fingerprint fingerprint) {
 
 		// as this is asynchronous, start a new thread that handles it

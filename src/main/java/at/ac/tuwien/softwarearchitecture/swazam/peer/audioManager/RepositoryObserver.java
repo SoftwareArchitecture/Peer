@@ -26,14 +26,12 @@ public class RepositoryObserver{
 	      FileAlterationObserver observer = new FileAlterationObserver(directory);
 	      observer.addListener(new FileAlterationListener(){
 
-			@Override
 			public void onDirectoryChange(File arg0) {
 //				System.out.println(arg0.getName()+" was changed ");
 				
 				//TODO nothing for now
 			}
 
-			@Override
 			public void onDirectoryCreate(File arg0) {
 				//System.out.println(arg0.getName()+" was created ");
 				
@@ -47,7 +45,6 @@ public class RepositoryObserver{
 				}}
 			}
 
-			@Override
 			public void onDirectoryDelete(File arg0) {
 				//System.out.println(arg0.getName()+" was deleted ");
 				
@@ -56,7 +53,6 @@ public class RepositoryObserver{
 				
 			}
 
-			@Override
 			public void onFileChange(File arg0) {
 				//System.out.println(arg0.getName()+" was changed ");
 				
@@ -64,7 +60,6 @@ public class RepositoryObserver{
 				
 			}
 
-			@Override
 			public void onFileCreate(File arg0) {
 				//System.out.println(arg0.getName()+" was created ");
 				AudioInputStream audioInputStream=repositoryAccess.getFileWithPath(arg0.getAbsolutePath());
@@ -72,20 +67,17 @@ public class RepositoryObserver{
 				
 			}
 
-			@Override
 			public void onFileDelete(File arg0) {
 				//System.out.println(arg0.getName()+" was deleted ");
 				//AudioInputStream audioInputStream=repositoryAccess.getFileWithPath(arg0.getName());
 				repositoryAccess.removeDeletedFile(arg0.getName());
 			}
 
-			@Override
 			public void onStart(FileAlterationObserver arg0) {
 				// TODO Auto-generated method stub
 				
 			}
 
-			@Override
 			public void onStop(FileAlterationObserver arg0) {
 				// TODO Auto-generated method stub
 			}

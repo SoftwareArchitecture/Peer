@@ -15,7 +15,7 @@ import at.ac.tuwien.softwarearchitecture.swazam.common.infos.FingerprintSearchRe
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.PeerFingerprintInformation;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.PeerInfo;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.PeerRingInformation;
-
+import at.ac.tuwien.softwarearchitecture.swazam.peer.serverCommunication.IServerCommunicationManager;
 
 @Provider
 @Path("/")
@@ -62,7 +62,7 @@ public class PeerWSAPI {
     @Consumes(MediaType.APPLICATION_XML)
     public void addFingerprints(PeerFingerprintInformation peerFingerprintInformation) {
         Logger.getLogger(PeerWSAPI.class).log(Level.WARN, "Adding fingeprints from peer: " + peerFingerprintInformation.getPeerInfo().getIp());
-        peerControl.getPeerManager().updatePeerInformation(peerFingerprintInformation);
+        peerControl.getPeerManager().distributeFingerprintsToSuperpeer(peerFingerprintInformation);
     }
     
     @GET

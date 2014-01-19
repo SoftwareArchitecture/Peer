@@ -1,6 +1,5 @@
 package at.ac.tuwien.softwarearchitecture.swazam.peer.api;
 
-import java.io.File;
 import java.io.InputStream;
 import java.util.Date;
 
@@ -14,6 +13,7 @@ import at.ac.tuwien.softwarearchitecture.swazam.peer.peerManager.PeerManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.serverCommunication.IServerCommunicationManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.serverCommunication.ServerCommunicationManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.util.ConfigurationManagement;
+
 
 /**
  * 
