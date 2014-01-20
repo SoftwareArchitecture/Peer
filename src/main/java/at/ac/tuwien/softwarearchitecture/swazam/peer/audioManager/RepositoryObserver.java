@@ -65,6 +65,7 @@ public class RepositoryObserver{
 				
 				repositoryAccess.addNewFoundFile(audioInputStream,arg0.getName());
 				
+				
 			}
 
 			public void onFileDelete(File arg0) {
