@@ -16,6 +16,7 @@ import org.apache.log4j.Logger;
 import ac.at.tuwien.infosys.swa.audio.Fingerprint;
 import ac.at.tuwien.infosys.swa.audio.FingerprintSystem;
 import at.ac.tuwien.softwarearchitecture.swazam.common.infos.MusicFileInfo;
+import at.ac.tuwien.softwarearchitecture.swazam.common.infos.PeerFingerprintInformation;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.audioManager.IAudioManager;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.audioManager.RepositoryAccess;
 import at.ac.tuwien.softwarearchitecture.swazam.peer.audioManager.RepositoryObserver;
@@ -83,7 +84,14 @@ public class FingerprintExtractorAndManager implements IFingerprintExtractorAndM
             Logger.getLogger(this.getClass()).log(Level.ERROR, e);
         }
         knownFingerprints.put(fingerprint, fileName);
-        //peerManager.distributeFingerprints(knownFingerprints.keySet());
+        
+        PeerFingerprintInformation fingerprintInformation = new PeerFingerprintInformation();
+
+        fingerprintInformation.setPeerInfo(peerManager.getCurrentPeerInformation());
+        fingerprintInformation.setFingerprints(knownFingerprints.keySet());
+        
+        peerManager.distributeFingerprintsToSuperpeer(fingerprintInformation);
+        
     }
 
     public void readCurrentRepository(String repo) {

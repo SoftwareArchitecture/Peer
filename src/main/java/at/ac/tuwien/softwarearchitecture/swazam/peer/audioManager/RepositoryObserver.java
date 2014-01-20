@@ -5,13 +5,12 @@ import java.io.IOException;
 import java.util.Map.Entry;
 
 import javax.sound.sampled.AudioInputStream;
-import javax.tools.FileObject;
 
 import org.apache.commons.io.monitor.FileAlterationListener;
 import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
-
-import at.ac.tuwien.softwarearchitecture.swazam.peer.fingerprintExtractorAndManager.FingerprintExtractorAndManager;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 
 public class RepositoryObserver{
@@ -22,7 +21,7 @@ public class RepositoryObserver{
 	}
 	public void setObservedDirectory(String path){
 		 File directory = new File(path);
-		 //System.out.println("Observed directory "+path);
+		  Logger.getLogger(this.getClass()).log(Level.INFO,"Observed directory "+path);
 	      FileAlterationObserver observer = new FileAlterationObserver(directory);
 	      observer.addListener(new FileAlterationListener(){
 
@@ -33,7 +32,7 @@ public class RepositoryObserver{
 			}
 
 			public void onDirectoryCreate(File arg0) {
-				//System.out.println(arg0.getName()+" was created ");
+				 Logger.getLogger(this.getClass()).log(Level.INFO,arg0.getName()+" was created ");
 				
 			for (Entry<AudioInputStream,String> entry:repositoryAccess.getAllFilesFromDirectory(arg0.getName()).entrySet()){
 				repositoryAccess.addNewFoundFile(entry.getKey(), entry.getValue());
@@ -46,7 +45,7 @@ public class RepositoryObserver{
 			}
 
 			public void onDirectoryDelete(File arg0) {
-				//System.out.println(arg0.getName()+" was deleted ");
+				 Logger.getLogger(this.getClass()).log(Level.INFO,arg0.getName()+" was deleted ");
 				
 				for (Entry<AudioInputStream,String> entry:repositoryAccess.getAllFilesFromDirectory(arg0.getName()).entrySet())
 					repositoryAccess.removeDeletedFile(entry.getValue());
@@ -54,21 +53,22 @@ public class RepositoryObserver{
 			}
 
 			public void onFileChange(File arg0) {
-				//System.out.println(arg0.getName()+" was changed ");
+				 Logger.getLogger(this.getClass()).log(Level.INFO,arg0.getName()+" was changed ");
 				
 				// TODO Auto-generated method stub
 				
 			}
 
 			public void onFileCreate(File arg0) {
-				//System.out.println(arg0.getName()+" was created ");
+				 Logger.getLogger(this.getClass()).log(Level.INFO,arg0.getName()+" was created ");
 				AudioInputStream audioInputStream=repositoryAccess.getFileWithPath(arg0.getAbsolutePath());
+				
 				repositoryAccess.addNewFoundFile(audioInputStream,arg0.getName());
 				
 			}
 
 			public void onFileDelete(File arg0) {
-				//System.out.println(arg0.getName()+" was deleted ");
+				 Logger.getLogger(this.getClass()).log(Level.INFO,arg0.getName()+" was deleted ");
 				//AudioInputStream audioInputStream=repositoryAccess.getFileWithPath(arg0.getName());
 				repositoryAccess.removeDeletedFile(arg0.getName());
 			}
